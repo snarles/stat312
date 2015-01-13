@@ -25,13 +25,15 @@ dim(valid_v1) # 1331 x 1560
 
 #write the png files
 
-#library(png)
-#for (ind in 1:120) {
-#    fname = paste("stimuli_images/img",ind,".png",sep="")
-#    img = valid_stim[ind,]+.5
-#    img=matrix(img,128,128)
-#    writePNG(img,fname)
-#}
+library(png)
+for (ind in 1:120) {
+    fname = paste("stimuli_images/img",ind,".png",sep="")
+    img = valid_stim[ind,]+.5
+    img[img > 1]=1
+    img[img < 0]=0
+    img=matrix(img,128,128)
+    writePNG(img,fname)
+}
 
 # returns a smaller table, with dimension ?? x 13
 # the entire table contains the response to one image
@@ -61,3 +63,52 @@ image(matrix(sub2[,1],18,19))
 slicedim = 1
 slicecoord=30
 imageind=3
+
+library(rgl)
+plot3d(v1_locations[,1],v1_locations[,2],v1_locations[,3])
+
+# part A
+
+vox = valid_v1[100,]
+s1 = vox[valid_index==52] # frog
+s2 = vox[valid_index==53] # princess
+tab <-  data.frame(val = c(s1,s2), stim=c(rep("frog",13),rep("princess",13)))
+boxplot(val ~ stim, data=tab)
+
+# compute the t -statistic
+tstat <- function(s1,s2) {
+    est.var = (sum((s2-mean(s2))^2) + sum((s1-mean(s1))^2))/(12*13)
+    est.diff = mean(s1)-mean(s2)
+    tstat = est.diff/sqrt(est.var)
+    return(tstat)
+}
+2*(1-pt(abs(tstat(s1,s2)),24))
+
+
+perm.test <- function(s1,s2) {
+# permutation test
+    nreps =1000
+    ts <- numeric(nreps)
+    vals = c(s1,s2)
+    for(ii in 1:nreps) {
+        inds = sample(26,26)
+        s1new = vals[inds[1:13]]
+        s2new = vals[inds[14:26]]
+        ts[ii] = mean(s1new)-mean(s2new)
+    }
+    t.original = mean(s1)-mean(s2)
+    pv = sum(abs(ts) > abs(t.original))/nreps
+    return(pv)
+}
+
+
+perm.test(s1,s2)
+
+nreps = 1000
+psnull = numeric(nreps)
+mu = 0
+sigma = 2
+for(ii in 1:nreps) {
+    psnull[ii] = perm.test(sigma*rnorm(13)+mu,rnorm(13))
+}
+hist(psnull)
