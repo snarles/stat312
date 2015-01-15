@@ -1,8 +1,8 @@
 %% Load Data
-stim = csvread('data/valid_stim.csv',1,0);
-stim_index = csvread('data/valid_index.csv',1,0);
-response = csvread('data/valid_v1.csv',1,0);
-locations = csvread('data/v1_locations.csv',1,0);
+stim = csvread('valid_stim.csv',1,0);
+stim_index = csvread('valid_index.csv',1,0);
+response = csvread('valid_v1.csv',1,0);
+locations = csvread('v1_locations.csv',1,0);
 
 %% Look at some images
 for i=1:12
@@ -22,10 +22,10 @@ image_B_responses=response(100,stim_index==image_B);
 estimated_diff=abs(mean(image_A_responses)-mean(image_B_responses));
 
 % Assuming the responses are independent, the variances add
-std_diff=sqrt(std(image_A_responses)^2+std(image_B_responses)^2)/sqrt(12);
-p_value=2*cdf('normal', -estimated_diff, 0, std_diff)
-Conf_int_upper=estimated_diff+2*std_diff
-Conf_int_lower=estimated_diff+2*std_diff
+std_diff=sqrt(std(image_A_responses)^2+std(image_B_responses)^2)/sqrt(13);
+p_value=2*cdf('t', -estimated_diff/std_diff, 24);
+Conf_int_upper=estimated_diff+2*std_diff;
+Conf_int_lower=estimated_diff+2*std_diff;
 
 % Compare to MATLAB built in
 [~,p,ci,stats]=ttest2(image_A_responses, image_B_responses)
@@ -50,26 +50,23 @@ end
 dark=[17 18 20 21 23 24];
 light=[13 14 15 16 19 22];
 
-group_A_resp=0;
-group_B_resp=0;
+%%
+group_A_responses=response(100,ismember(stim_index,dark));
+group_B_responses=response(100,ismember(stim_index,light));
 
-for i=1:6
-    group_A_resp=[group_A_resp response(100,stim_index==dark(i))];
-end
-for i=1:6
-    group_B_resp=[group_B_resp response(100,stim_index==light(i))];
-end
+estimated_diff=abs(mean(group_A_responses)-mean(group_B_responses));
 
-estimated_diff=abs(mean(group_A_resp(2:end))-mean(group_B_resp(2:end)));
 % Assuming the responses are independent, the variances add
-std_diff=sqrt(std(group_A_resp(2:end))^2/(13*6)+std(group_B_resp(2:end))^2/(13*6));
-p_value=2*cdf('normal', -estimated_diff, 0, std_diff)
-Conf_int_upper=estimated_diff+2*std_diff
-Conf_int_lower=estimated_diff-2*std_diff
-% Compare to MATLAB built in
-[~,p,ci,stats]=ttest2(group_A_resp(2:end), group_B_resp(2:end))
+std_diff=sqrt(std(group_A_responses)^2+std(group_B_responses)^2)/sqrt(78);
+p_value=2*cdf('t', -estimated_diff/std_diff, 154);
+Conf_int_upper=estimated_diff+2*std_diff;
+Conf_int_lower=estimated_diff+2*std_diff;
 
-boxplot([group_A_resp' group_B_resp'])
+% Compare to MATLAB built in
+[~,p,ci,stats]=ttest2(group_A_responses, group_B_responses)
+%%
+
+boxplot([group_A_responses' group_B_responses'])
 
 %% Calculate the STA!
 % need validation data to do this
