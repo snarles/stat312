@@ -113,3 +113,28 @@ for(ii in 1:nreps) {
     psnull[ii] = perm.test(sigma*rnorm(13)+mu,rnorm(13))
 }
 hist(psnull)
+
+# get receptive field
+
+vox.ind <- 100
+                                        # design matrix
+dmat <- diag(rep(1,120))[valid_index,]
+y <- valid_v1[vox.ind,]
+res <- lm(y ~ factor(valid_index))
+sr <- summary(res)
+pvals <- sr$coefficients[,4]
+
+
+imglist <- order(pvals)[1:10]
+log.p <- -log(pvals[imglist])
+require(grDevices)
+library(png)
+png("plotRF.png",width=1000,height=1000,units="px")
+plot(1:10, log.p, main="Receptive field of vox100", cex.main = 2, cex.lab = 2)
+for (ii in 1:10) {
+    ind <- imglist[ii]
+    fname = paste("stimuli_images/img",ind,".png",sep="")
+    img = as.raster(readPNG(fname))
+    rasterImage(img, ii-.5, log.p[ii]-.5, ii+.5, log.p[ii]+.5, interpolate = FALSE)
+}
+dev.off()
