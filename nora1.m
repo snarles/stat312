@@ -39,7 +39,7 @@ estimated_diff=abs(mean(image_A_responses)-mean(image_B_responses));
 std_diff=sqrt(std(image_A_responses)^2+std(image_B_responses)^2)/sqrt(13);
 p_value=2*cdf('t', -estimated_diff/std_diff, 24);
 Conf_int_upper=estimated_diff+2*std_diff;
-Conf_int_lower=estimated_diff+2*std_diff;
+Conf_int_lower=estimated_diff-2*std_diff;
 
 % Compare to MATLAB built in
 [~,p,ci,stats]=ttest2(image_A_responses, image_B_responses)
@@ -82,7 +82,6 @@ Conf_int_lower=estimated_diff+2*std_diff;
 
 % Compare to MATLAB built in
 [~,p,ci,stats]=ttest2(group_A_responses, group_B_responses)
-%%
 
 boxplot([group_A_responses' group_B_responses'])
 
@@ -207,6 +206,7 @@ end
 scatter3(locations(:,1),locations(:,2),locations(:,3), exp(5-p_slice*5), p_slice,'filled')
 
 %% Lets make a video of 3D responses over time 
+
 volume=zeros(64,64,64);
 for i=1:length(locations)
     volume(locations(i,1),locations(i,2),locations(i,3))=1;
@@ -227,10 +227,8 @@ for i=1:1560
 end
 movie2avi(F,'brainactivity');
 
-%% Calculate the STA!
-% really need validation data to do this
+%% Try calculating the STA from the validation data instead of training
 
-% Calulate the STA
 STA=zeros(1,128*128);
 stim_avg=zeros(1,128*128);
 for i=1:length(response)
@@ -262,7 +260,8 @@ hold on
 plot(x, y,'r*')
 title('Receptive Field of Voxel 100');
 
-%% Lets make a video of 3D responses over time 
+%% Lets make a video of p-value in a 3D volume for princess and frog
+
 volume=zeros(64,64,64);
 for i=1:length(locations)
     volume(locations(i,1),locations(i,2),locations(i,3))=1;
