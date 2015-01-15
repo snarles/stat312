@@ -25,16 +25,17 @@ dim(valid_v1) # 1331 x 1560
 
 #write the png files
 
-library(png)
-for (ind in 1:120) {
-    fname = paste("stimuli_images/img",ind,".png",sep="")
-    img = valid_stim[ind,]+.5
-    img[img > 1]=1
-    img[img < 0]=0
-    img=matrix(img,128,128)
-    writePNG(img,fname)
+if (FALSE) {
+    library(png)
+    for (ind in 1:120) {
+        fname = paste("stimuli_images/img",ind,".png",sep="")
+        img = valid_stim[ind,]+.5
+        img[img > 1]=1
+        img[img < 0]=0
+        img=matrix(img,128,128)
+        writePNG(img,fname)
+    }
 }
-
 # returns a smaller table, with dimension ?? x 13
 # the entire table contains the response to one image
 #                          (or set of images, considered identical)
@@ -104,7 +105,7 @@ perm.test <- function(s1,s2) {
 
 perm.test(s1,s2)
 
-nreps = 1000
+nreps = 10
 psnull = numeric(nreps)
 mu = 0
 sigma = 2
@@ -112,3 +113,29 @@ for(ii in 1:nreps) {
     psnull[ii] = perm.test(sigma*rnorm(13)+mu,rnorm(13))
 }
 hist(psnull)
+
+# do full ANOVA
+
+blockfacts = factor(rep(1:10,each=156))
+vox.ind <- 100
+y <- valid_v1[vox.ind,]
+res <- lm(y ~ factor(valid_index))
+sr <- summary(res)
+pvals <- sr$coefficients[,4]
+
+
+imglist <- order(pvals)[1:10]
+log.p <- -log(pvals[imglist])
+resc <- res$coefficients[imglist+1]
+require(grDevices)
+library(png)
+png("plotRF.png")
+plot(1:10, resc, main="ANOVA of vox100", cex.main = 2, cex.lab = 2, cex.axis=2,xlab = "top 10 hits",ylab="group mean - global mean")
+abline(a=0,b=0,lwd=2)
+for (ii in 1:10) {
+    ind <- imglist[ii]
+    fname = paste("stimuli_images/img",ind,".png",sep="")
+    img = as.raster(readPNG(fname))
+    rasterImage(img, ii-.5, resc[ii]-.15, ii+.5, resc[ii]+.15, interpolate = FALSE)
+}
+dev.off()
