@@ -114,11 +114,10 @@ for(ii in 1:nreps) {
 }
 hist(psnull)
 
-# get receptive field
+# do full ANOVA
 
+blockfacts = factor(rep(1:10,each=156))
 vox.ind <- 100
-                                        # design matrix
-dmat <- diag(rep(1,120))[valid_index,]
 y <- valid_v1[vox.ind,]
 res <- lm(y ~ factor(valid_index))
 sr <- summary(res)
@@ -127,14 +126,16 @@ pvals <- sr$coefficients[,4]
 
 imglist <- order(pvals)[1:10]
 log.p <- -log(pvals[imglist])
+resc <- res$coefficients[imglist+1]
 require(grDevices)
 library(png)
-png("plotRF.png",width=1000,height=1000,units="px")
-plot(1:10, log.p, main="Receptive field of vox100", cex.main = 2, cex.lab = 2)
+png("plotRF.png")
+plot(1:10, resc, main="ANOVA of vox100", cex.main = 2, cex.lab = 2, cex.axis=2,xlab = "top 10 hits",ylab="group mean - global mean")
+abline(a=0,b=0,lwd=2)
 for (ii in 1:10) {
     ind <- imglist[ii]
     fname = paste("stimuli_images/img",ind,".png",sep="")
     img = as.raster(readPNG(fname))
-    rasterImage(img, ii-.5, log.p[ii]-.5, ii+.5, log.p[ii]+.5, interpolate = FALSE)
+    rasterImage(img, ii-.5, resc[ii]-.15, ii+.5, resc[ii]+.15, interpolate = FALSE)
 }
 dev.off()
