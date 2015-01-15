@@ -13,6 +13,7 @@ for i=1:12
 end
 
 %% PART A
+set(0,'DefaultAxesFontSize',18,'DefaultAxesFontName','Helvetica')
 image_A=53; % princess
 image_B=52; % frog
 
@@ -47,7 +48,7 @@ Conf_int_lower=estimated_diff-2*std_diff;
 % Visualize
 figure;
 boxplot([image_A_responses' image_B_responses'])
-title('Princess Responses(1) versus Frog Responses(2)')
+title('Princess Responses versus Frog Responses')
 
 figure;
 stem(image_A_responses-image_B_responses-estimated_diff)
