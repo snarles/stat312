@@ -20,7 +20,7 @@ a=HRF_matrix_temp(:,(HRF_length-1):(end-2));
 HRF_matrix=blkdiag(a,a,a,a,a,a,a,a,a,a);
 clear i a HRF_matrix_temp HRF HRF_length
 
-%% Part A
+%% Part A.A
 % Now the image part of the design matrix
 image_matrix=zeros(time*10,121);
 for i=1:time*10
@@ -33,9 +33,11 @@ end
 % Calculate full design matrix, find least squares estimate
 Design_Matrix=HRF_matrix*image_matrix;
 alpha_image=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response_Vector;
-clear i image_matrix Design_Matrix
+clear i Design_Matrix
 
-%% Part C
+%% Part A.B
+
+%% Part A.C
 % Calculate an event matrix to replace the image matrix in Part A
 event_matrix=zeros(time*10, 130*13);
 for i=1:130*13
@@ -43,8 +45,21 @@ for i=1:130*13
 end % Not sure if this is the right matrix for this??
 Design_Matrix=HRF_matrix*event_matrix;
 alpha_event=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response_Vector;
-clear i event_matrix Design_Matrix
+clear i Design_Matrix
 
+%% Part A.D
+% Use the backgound rate from the first model for the zeros in the event
+% matrix
+% Calculate an event matrix to replace the image matrix in Part A
+event_matrix=zeros(time*10, 130*13);
+for i=1:130*13
+    event_matrix(1+(i-1)*4,i)=1;
+end % Not sure if this is the right matrix for this??
+Design_Matrix=HRF_matrix*event_matrix;
+alpha_event=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response_Vector;
+clear i Design_Matrix
 
+%% Part A.E
 
-
+%% Part B.A
+residuals=HRF_matrix*image_matrix*alpha_image-Response_Vector;
