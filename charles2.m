@@ -84,3 +84,19 @@ resid = y - yhat;
 resids = smooth(resid, .1, 'lowess');
 figure; plot(resid); hold on; plot(resids, 'r')
 resid_corr = resids;
+
+%% fit data with auto residual
+
+y = sel_vox{5};
+len_hrf = 30;
+hrf_params = spm_hrf_01(-9+ 10*(1:len_hrf));
+nits = 20;
+l2p_a = 0.1;
+l2p_r = 10;
+%l2p_a(13) = 100;
+l2p = 1000;
+[ hrf_params, stim_amps, yhat, rsse ,const ] = fit_amps_hrf_resid( y, hrf_params, stim_block, nits, l2p_a ,l2p,l2p_r );
+{const,stim_amps(13),rsse, norm(stim_amps)}
+
+figure; plot(stim_amps)
+figure; plot(hrf_params)
