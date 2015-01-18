@@ -20,5 +20,15 @@ len_hrf = 30; % number of points to include in the HRF
 
 %% test stuff
 
-hrf_params = randn(1,len_hrf);
+hrf_params = randn(len_hrf,1);
+stim_amps = randn(13,1);
 hmat = hrf_mat(hrf_params, nt);
+stmat = stim_mat(stim_block_13);
+%%
+y = cur_block;
+design_amps = hmat * stmat;
+stim_amps = lsqr(design_amps,y);
+yhat = design_amps * stim_amps;
+%%
+
+ta = stmat * stim_amps;
