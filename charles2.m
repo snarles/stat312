@@ -27,25 +27,29 @@ stim_block = stim_block_13;
 hrf_params = randn(len_hrf,1);
 stim_amps = randn(13,1);
 y = pred_signal( hrf_params, stim_block, stim_amps );
-hrf_params2 = fit_hrf( y, stim_block, stim_amps, len_hrf );
+hrf_params2 = fit_hrf_l2( y, stim_block, stim_amps, len_hrf, 100 );
 stim_amps2 = fit_amps( y, hrf_params, stim_block);
 
 figure; scatter(stim_amps,stim_amps2)
-figure; scatter(hrf_params,hrf_params2)
+figure; plot(hrf_params); hold on; plot(hrf_params2,'r')
 
 {norm(stim_amps - stim_amps2), norm(hrf_params-hrf_params2)}
 
 
 %% fit data
 
+
 y0 = sel_vox{10};
 y = y0 + 0.1*randn(696,1);
-hrf_params = spm_hrf_01(-9+ 10*(1:30));
+%% ---- intialization
+len_hrf = 10;
+hrf_params = spm_hrf_01(-9+ 10*(1:len_hrf));
 stim_amps = fit_amps( y, hrf_params, stim_block);
 yh = pred_signal( hrf_params, stim_block, stim_amps );
 {norm(y - yh),norm(y0-yh)}
 %% -------- iteration
-hrf_params = fit_hrf( y, stim_block, stim_amps, len_hrf );
+l2p = 2000;
+hrf_params = fit_hrf_l2( y, stim_block, stim_amps, len_hrf, l2p );
 stim_amps = fit_amps( y, hrf_params, stim_block);
 yh = pred_signal( hrf_params, stim_block, stim_amps );
 {norm(y - yh),norm(y0-yh)}
