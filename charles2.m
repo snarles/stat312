@@ -1,11 +1,14 @@
 %% 
 
 load('vox100stuff.mat');
+load('spm_hrf_01');
+%%
+plot(spm_hrf_01)
 %%
 
 sel_vox = vox100s;
-ind = 1;
-cur_block = vox100s{ind};
+ind = 2;
+cur_block = sel_vox{ind};
 stim_block_12 = seqVal(:,ind); % there are 12 stimuli
 nt = length(cur_block); % total number of time points, 696
 ns = nt/4; % total number of stimuli, 174
@@ -33,17 +36,21 @@ figure; scatter(hrf_params,hrf_params2)
 {norm(stim_amps - stim_amps2), norm(hrf_params-hrf_params2)}
 
 
-%% test stuff
+%% fit data
 
-hrf_params = randn(len_hrf,1);
-stim_amps = randn(13,1);
-hmat = hrf_mat(hrf_params, nt);
-stmat = stim_mat(stim_block_13);
-%%
-y = cur_block;
-design_amps = hmat * stmat;
-stim_amps = lsqr(design_amps,y);
-yhat = design_amps * stim_amps;
+y0 = sel_vox{10};
+y = y0 + 0.1*randn(696,1);
+hrf_params = spm_hrf_01(-9+ 10*(1:30));
+stim_amps = fit_amps( y, hrf_params, stim_block);
+yh = pred_signal( hrf_params, stim_block, stim_amps );
+{norm(y - yh),norm(y0-yh)}
+%% -------- iteration
+hrf_params = fit_hrf( y, stim_block, stim_amps, len_hrf );
+stim_amps = fit_amps( y, hrf_params, stim_block);
+yh = pred_signal( hrf_params, stim_block, stim_amps );
+{norm(y - yh),norm(y0-yh)}
+
 %%
 
-ta = stmat * stim_amps;
+figure; plot(stim_amps)
+figure; plot(hrf_params)
