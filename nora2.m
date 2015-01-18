@@ -2,7 +2,8 @@
 clc;clear;
 load('vox100stuff.mat');
 load('spm_hrf_01.mat');
-HRF=flip(downsample(spm_hrf_01,10)); % downsample HRF
+a=downsample(spm_hrf_01,10);
+HRF=a(end:-1:1); % downsample HRF
 HRF_length=length(HRF);
 time=length(vox100s{1});
 % concatenate the responses and the indices
@@ -62,4 +63,11 @@ clear i Design_Matrix
 %% Part A.E
 
 %% Part B.A
-residuals=HRF_matrix*image_matrix*alpha_image-Response_Vector;
+e=HRF_matrix*image_matrix*alpha_image-Response_Vector;
+Cov_estimate=e*e';
+K=inv(sqrtm(Cov_estimate));
+
+Design_Matrix=HRF_matrix*image_matrix;
+alpha_image_whiten=((K*Design_Matrix)'*(K*Design_Matrix))\(K*Design_Matrix)'*K*Response_Vector;
+
+
