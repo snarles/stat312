@@ -1,0 +1,7 @@
+First question: how to deal with the "null" signal and also
+the first 6 "calibration" signals? (for a single block)
+
+A: Treat the "null" signal (the one that occurs at the time
+you would expect a stimuli) as the "13th" stimuli.
+Treat the first 6 calibration as "14"th to "19"th stimuli.
+
