@@ -106,3 +106,7 @@ figure; plot(f0,real(ffs2).^2 + imag(ffs2).^2);
 
 resid2 = ifft(ffs2);
 figure;plot(real(resid2)); hold on; plot(resid, 'r');
+
+%%
+
+cov1 = fft2mat(ffs2);
