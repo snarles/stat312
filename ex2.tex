@@ -125,7 +125,7 @@ S =
 
 \begin{frame}
 \frametitle{Estimating HRF and amplitudes}
-Transform estimated or assumed HRF $h = (h_1,\hdots,h_{30}$ to matrix $H(h)$.
+Transform estimated or assumed HRF $h = (h_1,\hdots,h_L)$ to matrix $H(h)$.
 Dimension of $H(h)$ is $T \times T$
 \[
 h = 
@@ -146,11 +146,11 @@ h_5 & h_4 & h_3 & \cdots\\
 \end{frame}
 
 \begin{frame}
-\frametitle{Estimating HRF and amplitudes}
+\frametitle{Estimating amplitudes}
 
 Estimate the stimuli-specific amplitudes $\alpha = (\alpha_1,\hdots,\alpha_K)$ by fitting the model
 \[
-y = H(h) S \alpha = \begin{bmatrix}
+y \sim H(h) S \alpha  + \text{const}= \begin{bmatrix}
 h_1 & 0 & 0 & \cdots\\
 h_2 & h_1 & 0 & \cdots\\
 h_3 & h_2 & h_1 & \cdots\\
@@ -168,11 +168,31 @@ h_5 & h_4 & h_3 & \cdots\\
 \end{bmatrix}
 \begin{bmatrix}
 \alpha_1\\\alpha_2\\\alpha_3\\\vdots
-\end{bmatrix}
+\end{bmatrix}  + \text{const}
 \]
 
 \end{frame}
 
+
+\begin{frame}
+\frametitle{Estimating HRF}
+Suppose instead that $\alpha$ is known and $h$ is unknown.  Then let $t = S\alpha = (t_1,t_2,\hdots)$ and define
+\[
+A(S\alpha) = \begin{bmatrix}
+t_1 & 0 & 0 & \cdots\\
+t_2 & t_1 & 0 & \cdots\\
+t_3 & t_2 & t_1 & \cdots\\
+t_4 & t_3 & t_2 & \cdots\\
+t_5 & t_4 & t_3 & \cdots\\
+\vdots & \vdots & \vdots & \vdots
+\end{bmatrix}
+\]
+Dimension of $A(S\alpha)$ is $T \times L$, where $L$ is duration of HRF.
+Then fit
+\[
+y \sim A(S\alpha) h + \text{const}
+\]
+\end{frame}
 
 \end{document}
 
