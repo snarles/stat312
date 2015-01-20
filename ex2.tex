@@ -252,6 +252,9 @@ r_j = \epsilon_j + \sum_{k=1}^K Z_k \cos(2\pi j/T) + \sum_{k=1}^K W_k \sin(2\pi 
 \]
 where $\epsilon_j \sim N(0,\sigma^2_0)$, $Z_k, W_k \sim N(0,\sigma^2_k)$ (all independent).
 \item Use the estimating equations 
+\[
+\mathbb{E}[\Sigma r_j^2] = T\sigma_0^2 + 2\Sigma_k \sigma^2_k 
+\]
 \[\mathbb{E}\left[\left(\frac{\sum r_j \cos(2\pi j/T)}{\sum \cos(2\pi j/T)^2}\right)^2\right] = \sigma^2_k +\sigma^2_0\]
 (replace $\cos$ by $\sin$ in the above.)
 \end{itemize}
