@@ -192,7 +192,26 @@ Then fit
 \[
 y \sim A(S\alpha) h + \text{const}
 \]
+
+Fit $h$ and $\alpha$ in alternating fashion until convergence.
 \end{frame}
+
+\begin{frame}
+\frametitle{Regularization}
+Define a penalty function $P(h)$ by 
+\[P(h) = (h_1-h_2)^2 + (h_2-h_3)^2 + \cdots + (h_{L-1}-h_L)^2\]
+Now, choosing $\lambda_h > 0$, fit
+\[
+h = \text{argmin} ||y - A(S\alpha) h + c||^2 + \lambda_h P(h)
+\]
+Similarly, fit
+\[
+\alpha = \text{argmin} ||y - H(h)S\alpha + c||^2 + \lambda_\alpha ||\alpha||^2
+\]
+Again, alternate until convergence.
+
+\end{frame}
+
 
 \end{document}
 
