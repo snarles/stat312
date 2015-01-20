@@ -38,11 +38,16 @@ alpha_image=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response_Vector;
 clear i Design_Matrix
 
 %% Part A.E
-
 % Fit loess to each block
-Response_smooth = smooth(Response_Vector, 0.05, 'lowess');
+idx=1:672;
+for i=1:10
+    Response_smooth(idx) = smooth(Response_Vector(idx), 0.8, 'lowess');
+    idx=idx+672;
+end
 plot(Response_Vector);
 hold on; plot(Response_smooth,'r')
+
+% Get rid of global trends
 Response=Response_Vector-Response_smooth;
 
 % Fit the new model
@@ -56,6 +61,7 @@ plot(e)
 hold on; plot(e_loess,'r')
 
 % Compare correlation structure
+figure; 
 plot(xcorr(Response_Vector,'unbiased'));
 hold on;
 plot(xcorr(Response,'unbiased'),'r');
