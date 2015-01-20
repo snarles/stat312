@@ -157,6 +157,18 @@ zsynth = L*randn(nt,1);
 plot(zsynth); hold on; plot(smooth(zsynth, .1, 'lowess'),'r')
 %% get whitening matrix
 
+covmat_naive = resd*resd';
+figure;imagesc(covmat_naive);
+
+set(gcf,'PaperUnits','inches','PaperSize',[10,10],'PaperPosition',[0 0 8 8])
+print -painters -dpdf -r300 ex2_data2_cov1.pdf
+
+figure;imagesc(covmat);
+
+set(gcf,'PaperUnits','inches','PaperSize',[10,10],'PaperPosition',[0 0 8 8])
+print -painters -dpdf -r300 ex2_data2_cov2.pdf
+
+
 [e,v] = eig(covmat);
 whtmat = e*diag(1./sqrt(diag(v)))*e';
 
