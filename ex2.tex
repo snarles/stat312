@@ -99,11 +99,25 @@
 
 
 \begin{frame}
-\frametitle{Goal: Infer connective structure of brain from diffusion MRI images}
-[needed: images of barin slices]
+\frametitle{Estimating HRF}
 \begin{itemize}
-\item Acquire 150 images of the same brain using different directional magnetic fields
-\item Each image consists of 106x76x81 'voxels'
+\item Use one block at a time
+\item Code the twelve stimuli as 1-12, the ``null'' signal as 13, and the 6 ``calibration'' signals as 14-19
+\item Transform stimuli assignments to a matrix $S$,
+\[
+\begin{bmatrix}
+1\\0\\0\\0\\3\\\vdots
+\end{bmatrix} \leftarrow
+S = 
+\begin{bmatrix}
+1 & 0 & 0 & 0\\
+0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0\\
+0 & 0 & 1 & 0\\
+\vdots & \vdots & \vdots & \vdots
+\end{bmatrix}
+\]
 \end{itemize}
 \end{frame}
 
