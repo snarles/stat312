@@ -146,8 +146,8 @@ resid_corr = resids;
 %% GLS
 
 resd = y - yhat;
-basis_mat = fourier_matrix(nt,10);
-basis_mat = basis_mat(:,2:end);
+basis_mat = gp_eigenfuncs(nt,.1);
+basis_mat = basis_mat(:,1:10);
 eps = 0.01;
 nits = 200;
 covmat = gp_cov_est(resd,basis_mat,eps,nits);

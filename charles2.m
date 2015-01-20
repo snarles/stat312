@@ -71,9 +71,9 @@ y = y0 -resid_corr;
 len_hrf = 30;
 hrf_params = spm_hrf_01(-9+ 10*(1:len_hrf));
 nits = 20;
-l2p_a = 0.1*ones(1,max(stim_block));
+l2p_a = 0.01*ones(1,max(stim_block));
 %l2p_a(13) = 100;
-l2p = 1000;
+l2p = 100;
 [ hrf_params, stim_amps, yhat, rsse ,const ] = fit_amps_hrf_l2( y, hrf_params, stim_block, nits, l2p_a ,l2p );
 {const,stim_amps(13),rsse, norm(stim_amps)}
 
@@ -96,8 +96,8 @@ resid_corr = resids;
 %% GLS
 
 resd = y - yhat;
-basis_mat = fourier_matrix(nt,10);
-basis_mat = basis_mat(:,2:end);
+basis_mat = gp_eigenfuncs(nt,.1);
+basis_mat = basis_mat(:,1:10);
 eps = 0.01;
 nits = 200;
 covmat = gp_cov_est(resd,basis_mat,eps,nits);
