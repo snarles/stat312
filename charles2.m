@@ -88,25 +88,31 @@ figure; scatter(sub_stim_block, event_amps)
 
 %% residuals
 
-resid = y - yhat;
-resids = smooth(resid, .1, 'lowess');
-figure; plot(resid); hold on; plot(resids, 'r')
+resd = y - yhat;
+resids = smooth(resd, .1, 'lowess');
+figure; plot(resd); hold on; plot(resids, 'r')
 resid_corr = resids;
 
 %% GLS
 
-resid = y - yhat;
-ffs = fft(resid);
-f0 = 1:nt;
-figure; plot(f0,real(ffs).^2 + imag(ffs).^2);
-ffs2 = 0.*ffs;
-thres =20;
-ffs2(abs(f0) < thres) = ffs(abs(f0) < thres);
-figure; plot(f0,real(ffs2).^2 + imag(ffs2).^2);
+resd = y - yhat;
+basis_mat = fourier_matrix(nt,10);
+basis_mat = basis_mat(:,2:end);
+eps = 0.01;
+nits = 200;
+covmat = gp_cov_est(resd,basis_mat,eps,nits);
+L = chol(covmat,'lower');
+%% look at a sample drawn from estimated cov matrix
+zsynth = L*randn(nt,1);
+plot(zsynth); hold on; plot(smooth(zsynth, .1, 'lowess'),'r')
+%% get whitening matrix
 
-resid2 = ifft(ffs2);
-figure;plot(real(resid2)); hold on; plot(resid, 'r');
+[e,v] = eig(covmat);
+whtmat = e*diag(1./sqrt(diag(v)))*e';
 
-%%
 
-cov1 = fft2mat(ffs2);
+%% fit the model
+
+[event_amps, yhat] = fit_amps_l2_wht( y, hrf_params, stim_block_all,l2p_a(1),whtmat);
+figure; plot(event_amps)
+figure; scatter(sub_stim_block, event_amps)
