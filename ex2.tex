@@ -229,11 +229,12 @@ Compared fits with/without regularization.
 \begin{frame}
 \frametitle{Data: Block3}
 \begin{tabular}{ccc}
-\includegraphics[scale=0.15]{ex2_data1a.pdf}&
-\includegraphics[scale=0.15]{ex2_data1b.pdf}\\
+\includegraphics[scale=0.12]{ex2_data1a.pdf}&
+\includegraphics[scale=0.12]{ex2_data1b.pdf}\\
 amplitudes & HRF\\
 events (by type) & residuals\\
-\includegraphics[scale=0.15]{ex2_data1c.pdf} & \includegraphics[scale=0.15]{ex2_data1r.pdf}
+\includegraphics[scale=0.12]{ex2_data1c.pdf} &
+ \includegraphics[scale=0.12]{ex2_data1r.pdf}
 \end{tabular}
 \end{frame}
 
@@ -263,18 +264,19 @@ where $\epsilon_j \sim N(0,\sigma^2_0)$, $Z_k, W_k \sim N(0,\sigma^2_k)$ (all in
 Estimated $\hat{\Sigma}$
 \begin{tabular}{cc}
 \includegraphics[scale=0.2]{ex2_data2_cov1.pdf} & 
-\includegraphics[scale=0.2]{ex2_data2_cov1.pdf}\\
+\includegraphics[scale=0.2]{ex2_data2_cov2.pdf}\\
 Naive estimate $rr'$ & GP estimate 
 \end{tabular}
 \end{frame}
 
 \begin{frame}
 \frametitle{Comparisons}
+Events estimated with
 \begin{tabular}{ccc}
 \includegraphics[scale=0.15]{ex2_data1c_spm.pdf} & 
 \includegraphics[scale=0.15]{ex2_data1c.pdf} & 
 \includegraphics[scale=0.15]{ex2_data2.pdf}\\
-Events estimated with SPM & Events with fitted HRF & Events with fitted $h$ and GLS
+SPM & fitted HRF & fitted $h$ and GLS
 \end{tabular}
 \end{frame}
 
