@@ -104,10 +104,11 @@
 \item Use one block at a time
 \item Code the twelve stimuli as 1-12, the ``null'' signal as 13, and the 6 ``calibration'' signals as 14-19
 \item Transform stimuli assignments to a matrix $S$,
+dimension of $S$ is $T \times K$, $T$ is the time of time points, $K$ the number of stimuli types
 \[
 \begin{bmatrix}
 1\\0\\0\\0\\3\\\vdots
-\end{bmatrix} \leftarrow
+\end{bmatrix} \rightarrow
 S = 
 \begin{bmatrix}
 1 & 0 & 0 & 0\\
@@ -121,6 +122,28 @@ S =
 \end{itemize}
 \end{frame}
 
+
+\begin{frame}
+\frametitle{Estimating HRF}
+Transform estimated or assumed HRF $h = (h_1,\hdots,h_{30}$ to matrix $H(h)$.
+Dimension of $H(h)$ is $T \times T$
+\[
+h = 
+\begin{bmatrix}
+h_1\\h_2\\h_3\\h_4\\h_5\\\vdots
+\end{bmatrix} \rightarrow
+H(h) = 
+\begin{bmatrix}
+h_1 & 0 & 0 & \cdots\\
+h_2 & h_1 & 0 & \cdots\\
+h_3 & h_2 & h_1 & \cdots\\
+h_4 & h_3 & h_2 & \cdots\\
+h_5 & h_4 & h_3 & \cdots\\
+\vdots & \vdots & \vdots & \vdots
+\end{bmatrix}
+\]
+
+\end{frame}
 
 \end{document}
 
