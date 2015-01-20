@@ -5,12 +5,13 @@ load('spm_hrf_01.mat');
 a=downsample(spm_hrf_01,10);
 HRF=a(end:-1:1); % downsample HRF
 HRF_length=length(HRF);
-time=length(vox100s{1});
+time=length(vox100s{1}(25:end));
 % concatenate the responses and the indices
-Response_Vector=[vox100s{1,1}; vox100s{2,1}; vox100s{3,1}; vox100s{4,1}; vox100s{5,1};...
-    vox100s{6,1}; vox100s{7,1}; vox100s{8,1}; vox100s{9,1}; vox100s{10,1}];
-seqVal=reshape(seqVal,696*10,1);
-clear spm_hrf_01 vox100s
+Response_Vector=[vox100s{1,1}(25:end); vox100s{2,1}(25:end); vox100s{3,1}(25:end); vox100s{4,1}(25:end); vox100s{5,1}(25:end);...
+    vox100s{6,1}(25:end); vox100s{7,1}(25:end); vox100s{8,1}(25:end); vox100s{9,1}(25:end); vox100s{10,1}(25:end)];
+seqVal=reshape(seqVal(25:end,:),time*10,1);
+
+clear spm_hrf_01 vox100s a
 
 %% Make HRF matrix
 HRF_matrix_temp=zeros(time, time+HRF_length);
@@ -36,38 +37,39 @@ Design_Matrix=HRF_matrix*image_matrix;
 alpha_image=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response_Vector;
 clear i Design_Matrix
 
-%% Part A.B
+%% Part A.E
+
+% Fit loess to each block
+Response_smooth = smooth(Response_Vector, 0.05, 'lowess');
+plot(Response_Vector);
+hold on; plot(Response_smooth,'r')
+Response=Response_Vector-Response_smooth;
+
+% Fit the new model
+Design_Matrix=HRF_matrix*image_matrix;
+alpha_image_loess=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response;
+
+% Compare residuals
+e=HRF_matrix*image_matrix*alpha_image-Response_Vector;
+e_loess=HRF_matrix*image_matrix*alpha_image_loess-Response;
+plot(e)
+hold on; plot(e_loess,'r')
+
+% Compare correlation structure
+plot(xcorr(Response_Vector,'unbiased'));
+hold on;
+plot(xcorr(Response,'unbiased'),'r');
 
 %% Part A.C
 % Calculate an event matrix to replace the image matrix in Part A
-event_matrix=zeros(time*10, 130*13);
-for i=1:130*13
+event_matrix=zeros(time*10, 130*12+120);
+for i=1:130*12+120
     event_matrix(i*4,i)=1;
-end % Not sure if this is the right matrix for this??
+end
 Design_Matrix=HRF_matrix*event_matrix;
 alpha_event=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response_Vector;
 clear i Design_Matrix
-
-%% Part A.D
-% Use the backgound rate from the first model for the zeros in the event
-% matrix
-% Calculate an event matrix to replace the image matrix in Part A
-event_matrix=zeros(time*10, 130*13);
-for i=1:130*13
-    event_matrix(1+(i-1)*4,i)=1;
-end % Not sure if this is the right matrix for this??
-Design_Matrix=HRF_matrix*event_matrix;
-alpha_event=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response_Vector;
-clear i Design_Matrix
-
-%% Part A.E
+scatter(seqVal(1:4:end),alpha_event)
+scatter(seqVal(1:4:end),alpha_event)
 
 %% Part B.A
-e=HRF_matrix*image_matrix*alpha_image-Response_Vector;
-Cov_estimate=e*e';
-K=inv(sqrtm(Cov_estimate));
-
-Design_Matrix=HRF_matrix*image_matrix;
-alpha_image_whiten=((K*Design_Matrix)'*(K*Design_Matrix))\(K*Design_Matrix)'*K*Response_Vector;
-
-
