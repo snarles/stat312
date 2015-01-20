@@ -99,7 +99,7 @@
 
 
 \begin{frame}
-\frametitle{Estimating HRF}
+\frametitle{Estimating HRF and amplitudes}
 \begin{itemize}
 \item Use one block at a time
 \item Code the twelve stimuli as 1-12, the ``null'' signal as 13, and the 6 ``calibration'' signals as 14-19
@@ -124,7 +124,7 @@ S =
 
 
 \begin{frame}
-\frametitle{Estimating HRF}
+\frametitle{Estimating HRF and amplitudes}
 Transform estimated or assumed HRF $h = (h_1,\hdots,h_{30}$ to matrix $H(h)$.
 Dimension of $H(h)$ is $T \times T$
 \[
@@ -144,6 +144,35 @@ h_5 & h_4 & h_3 & \cdots\\
 \]
 
 \end{frame}
+
+\begin{frame}
+\frametitle{Estimating HRF and amplitudes}
+
+Estimate the stimuli-specific amplitudes $\alpha = (\alpha_1,\hdots,\alpha_K)$ by fitting the model
+\[
+y = H(h) S \alpha = \begin{bmatrix}
+h_1 & 0 & 0 & \cdots\\
+h_2 & h_1 & 0 & \cdots\\
+h_3 & h_2 & h_1 & \cdots\\
+h_4 & h_3 & h_2 & \cdots\\
+h_5 & h_4 & h_3 & \cdots\\
+\vdots & \vdots & \vdots & \vdots
+\end{bmatrix}
+\begin{bmatrix}
+1 & 0 & 0 & 0\\
+0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0\\
+0 & 0 & 1 & 0\\
+\vdots & \vdots & \vdots & \vdots
+\end{bmatrix}
+\begin{bmatrix}
+\alpha_1\\\alpha_2\\\alpha_3\\\vdots
+\end{bmatrix}
+\]
+
+\end{frame}
+
 
 \end{document}
 
