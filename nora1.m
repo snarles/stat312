@@ -13,8 +13,23 @@ for i=1:12
 end
 
 %% PART A
+set(0,'DefaultAxesFontSize',18,'DefaultAxesFontName','Helvetica')
 image_A=53; % princess
 image_B=52; % frog
+
+figure;
+subplot(1,2,1)
+imagesc(reshape(stim(53,:),[128,128]))
+axis image
+colormap gray
+axis off
+title('The Princess')
+subplot(1,2,2)
+imagesc(reshape(stim(52,:),[128,128]))
+axis image
+colormap gray
+axis off
+title('The Frog')
 
 % Get the responses
 image_A_responses=response(100,stim_index==image_A);
@@ -25,15 +40,19 @@ estimated_diff=abs(mean(image_A_responses)-mean(image_B_responses));
 std_diff=sqrt(std(image_A_responses)^2+std(image_B_responses)^2)/sqrt(13);
 p_value=2*cdf('t', -estimated_diff/std_diff, 24);
 Conf_int_upper=estimated_diff+2*std_diff;
-Conf_int_lower=estimated_diff+2*std_diff;
+Conf_int_lower=estimated_diff-2*std_diff;
 
 % Compare to MATLAB built in
 [~,p,ci,stats]=ttest2(image_A_responses, image_B_responses)
 
 % Visualize
+figure;
 boxplot([image_A_responses' image_B_responses'])
-stem([image_A_responses'-mean(image_A_responses) image_B_responses'-mean(image_B_responses)])
+title('Princess Responses versus Frog Responses')
+
+figure;
 stem(image_A_responses-image_B_responses-estimated_diff)
+title('Residuals')
 
 % There definitely is a difference between the distributions, but due to
 % the overlap, it would be very hard to distinguish without many repeats.
@@ -64,7 +83,6 @@ Conf_int_lower=estimated_diff+2*std_diff;
 
 % Compare to MATLAB built in
 [~,p,ci,stats]=ttest2(group_A_responses, group_B_responses)
-%%
 
 boxplot([group_A_responses' group_B_responses'])
 
@@ -78,12 +96,12 @@ load('Data/Stimuli.mat');
 % Figure out the equivalent pixel
 V1=roiS1==1;
 count=0;
-idx=1;
+idx=0;
 while count<100
-    count=count+V1(idx);
     idx=idx+1;
+    count=count+V1(idx);
 end
-resp=dataTrnS1(idx-1, :);
+resp=dataTrnS1(idx, :);
 
 % Calulate the STA
 STA=zeros(1,128,128);
@@ -119,6 +137,7 @@ title('Receptive Field of Voxel 100');
 
 %% Now that we have RF of voxel, try to pick two very different images
 clear resp
+STA=reshape(STA,128,128);
 for i=1:120
     resp(i)=sum(sum(squeeze(stimVal(i,:,:)).*squeeze(STA)));
 end
@@ -128,6 +147,7 @@ end
 % Get the responses
 image_A_responses=response(100,stim_index==image_A);
 image_B_responses=response(100,stim_index==image_B);
+abs(mean(image_A_responses)-mean(image_B_responses))
 
 % MATLAB built in
 [~,p,ci,stats]=ttest2(image_A_responses, image_B_responses)
@@ -140,7 +160,7 @@ p=zeros(120);
 est_diff=zeros(120);
 rec_diff=zeros(120);
 for image_A=1:120
-    for image_B=1:image_A-1
+    for image_B=1:120
         image_A_responses=response(100,stim_index==image_A);
         image_B_responses=response(100,stim_index==image_B);
         [~,p(image_A,image_B),~,~]=ttest2(image_A_responses, image_B_responses);
@@ -187,6 +207,7 @@ end
 scatter3(locations(:,1),locations(:,2),locations(:,3), exp(5-p_slice*5), p_slice,'filled')
 
 %% Lets make a video of 3D responses over time 
+
 volume=zeros(64,64,64);
 for i=1:length(locations)
     volume(locations(i,1),locations(i,2),locations(i,3))=1;
@@ -202,7 +223,75 @@ for i=1:1560
     axis off
     set(gcf,'color','w');
     pause(0.01)
-    %F(i)=getframe(gcf);
+    F(i)=getframe(gcf);
     delete(s)
 end
-%movie2avi(F,'brainactivity');
+movie2avi(F,'brainactivity');
+
+%% Try calculating the STA from the validation data instead of training
+
+STA=zeros(1,128*128);
+stim_avg=zeros(1,128*128);
+for i=1:length(response)
+    STA=STA+response(100,i)*stim(stim_index(i),:,:);
+    stim_avg=stim_avg+stim(stim_index(i),:,:);
+end
+
+% Plot STA
+subplot(1,2,1)
+colormap gray
+imagesc(reshape(stim_avg, 128,128))
+axis image
+axis off
+title('Average Stimulus')
+
+subplot(1,2,2)
+colormap gray
+imagesc(reshape(STA, 128,128))
+axis image
+axis off
+
+% find and plot center of RF
+[a,b]=max(abs(STA));
+[~,x]=max(a);
+y=b(x);
+clear a b
+
+hold on
+plot(x, y,'r*')
+title('Receptive Field of Voxel 100');
+
+%% Lets make a video of p-value in a 3D volume for princess and frog
+
+volume=zeros(64,64,64);
+for i=1:length(locations)
+    volume(locations(i,1),locations(i,2),locations(i,3))=1;
+end
+p=isosurface(volume,0.99);
+patch(p,'FaceAlpha',0.2,'EdgeColor','none')
+axis equal
+hold on
+
+image_A=52; % princess
+image_B=53; % frog
+
+for i=1:length(locations)
+    image_A_responses=response(i,stim_index==image_A);
+    image_B_responses=response(i,stim_index==image_B);
+    [~,p_slice(i),~,~]=ttest2(image_A_responses, image_B_responses);
+end
+sig_indices=p_slice<0.1;
+scatter3(locations(sig_indices,2),locations(sig_indices,1),locations(sig_indices,3), 1000*(0.1-p_slice(sig_indices)), p_slice(sig_indices),'filled')
+axis off
+set(gcf,'color','w');
+axis equal
+colorbar
+colormap hot
+
+for i=1:100
+    view(3*i,20)
+    camlight
+    pause(0.01)
+    F(i)=getframe(gcf);
+end
+movie2avi(F,'pvalue');
