@@ -5,12 +5,13 @@ load('spm_hrf_01.mat');
 a=downsample(spm_hrf_01,10);
 HRF=a(end:-1:1); % downsample HRF
 HRF_length=length(HRF);
-time=length(vox100s{1});
+time=length(vox100s{1}(25:end));
 % concatenate the responses and the indices
-Response_Vector=[vox100s{1,1}; vox100s{2,1}; vox100s{3,1}; vox100s{4,1}; vox100s{5,1};...
-    vox100s{6,1}; vox100s{7,1}; vox100s{8,1}; vox100s{9,1}; vox100s{10,1}];
-seqVal=reshape(seqVal,696*10,1);
-clear spm_hrf_01 vox100s
+Response=[vox100s{1,1}(25:end); vox100s{2,1}(25:end); vox100s{3,1}(25:end); vox100s{4,1}(25:end); vox100s{5,1}(25:end);...
+    vox100s{6,1}(25:end); vox100s{7,1}(25:end); vox100s{8,1}(25:end); vox100s{9,1}(25:end); vox100s{10,1}(25:end)];
+seqVal=reshape(seqVal(25:end,:),time*10,1);
+
+clear spm_hrf_01 vox100s a
 
 %% Make HRF matrix
 HRF_matrix_temp=zeros(time, time+HRF_length);
@@ -33,41 +34,87 @@ for i=1:time*10
 end
 % Calculate full design matrix, find least squares estimate
 Design_Matrix=HRF_matrix*image_matrix;
-alpha_image=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response_Vector;
-clear i Design_Matrix
+alpha_image=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response;
+e_image=Design_Matrix*alpha_image-Response;
 
-%% Part A.B
+figure; stem(e_image); title('Image Model Residuals');
+
+clear i Design_Matrix
 
 %% Part A.C
 % Calculate an event matrix to replace the image matrix in Part A
-event_matrix=zeros(time*10, 130*13);
-for i=1:130*13
+event_matrix=zeros(time*10, 130*12+120);
+for i=1:130*12+120
     event_matrix(i*4,i)=1;
-end % Not sure if this is the right matrix for this??
+end
 Design_Matrix=HRF_matrix*event_matrix;
-alpha_event=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response_Vector;
-clear i Design_Matrix
+alpha_event=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response;
+e_event=Design_Matrix*alpha_event-Response;
 
-%% Part A.D
-% Use the backgound rate from the first model for the zeros in the event
-% matrix
-% Calculate an event matrix to replace the image matrix in Part A
-event_matrix=zeros(time*10, 130*13);
-for i=1:130*13
-    event_matrix(1+(i-1)*4,i)=1;
-end % Not sure if this is the right matrix for this??
-Design_Matrix=HRF_matrix*event_matrix;
-alpha_event=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response_Vector;
+figure; scatter(seqVal(1:4:end),alpha_event)
+title('Event Amplitudes for each image');
+figure; stem(e_event); title('Event Model Residuals');
+
 clear i Design_Matrix
 
 %% Part A.E
+% Fit loess to each block
+Response_smooth=zeros(time*10,1);
+idx=1:672;
+for i=1:10
+    Response_smooth(idx) = smooth(Response(idx), 0.8, 'lowess');
+    idx=idx+672;
+end
 
-%% Part B.A
-e=HRF_matrix*image_matrix*alpha_image-Response_Vector;
-Cov_estimate=e*e';
-K=inv(sqrtm(Cov_estimate));
+plot(Response);
+hold on; plot(Response_smooth,'r')
+title('Global Trends');
 
+% Get rid of global trends
+Response_Loess=Response-Response_smooth;
+
+% Compare correlation structure
+figure; 
+plot(xcorr(Response,'none'));
+hold on;
+plot(xcorr(Response_Loess,'none'),'r');
+title('Cross Correlation')
+legend('Original model', 'Loess model');
+
+clear i idx Response_smooth
+
+%% Refit A.A
 Design_Matrix=HRF_matrix*image_matrix;
-alpha_image_whiten=((K*Design_Matrix)'*(K*Design_Matrix))\(K*Design_Matrix)'*K*Response_Vector;
+alpha_image_loess=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response_Loess;
+e_image_loess=Design_Matrix*alpha_image_loess-Response_Loess;
 
+% Compare residuals
+figure;
+plot(e_image)
+hold on; plot(e_image_loess,'r')
+title('Residuals for Image Model')
+legend('Original model', 'Loess model');
+
+clear Design_Matrix
+
+%% Refit A.C
+Design_Matrix=HRF_matrix*event_matrix;
+alpha_event_loess=(Design_Matrix'*Design_Matrix)\Design_Matrix'*Response_Loess;
+e_event_loess=Design_Matrix*alpha_event_loess-Response_Loess;
+
+% Compare residuals
+figure;
+plot(e_event)
+hold on; plot(e_event_loess,'r')
+title('Residuals for Event Model')
+legend('Original model', 'Loess model');
+
+% Compare images
+figure;
+scatter(seqVal(1:4:end),alpha_event); hold on;
+scatter(seqVal(1:4:end),alpha_event_loess,'r');
+title('Event Amplitudes for each image');
+legend('Original model','Loess model');
+
+clear Design_Matrix
 
