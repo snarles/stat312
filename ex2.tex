@@ -226,9 +226,48 @@ Compared fits with/without regularization.
 \emph{Left: amplitudes, right: HRF, blue: truth, red: estimate}
 \end{frame}
 
+\begin{frame}
+\frametitle{Data: Block3}
+\begin{tabular}{ccc}
+\includegraphics[scale=0.1]{ex2_data1a.pdf}&
+\includegraphics[scale=0.1]{ex2_data1b.pdf}&
+\includegraphics[scale=0.1]{ex2_data1c.pdf}\\
+amplitudes & HRF & events (by type)
+\end{tabular}
+\end{frame}
 
+
+
+\begin{frame}
+\frametitle{Data: Block3}
+Residuals
+\includegraphics[scale=0.2]{ex2_data1r.pdf}
+\end{frame}
+
+
+
+\begin{frame}
+\frametitle{Covariance estimation}
+\begin{itemize}
+\item Assume Gaussian process + noise model.
+\item That is, if $r_j$ are residuals, for $j = 1,\hdots,T$,
+\[
+r_j = \epsilon_j + \sum_{k=1}^K Z_k \cos(2\pi j/T) + \sum_{k=1}^K W_k \sin(2\pi j/T)
+\]
+where $\epsilon_j \sim N(0,\sigma^2_0)$, $Z_k, W_k \sim N(0,\sigma^2_k)$ (all independent).
+\item Use the estimating equations 
+\[\mathbb{E}\left[\left(\frac{\sum r_j \cos(2\pi j/T)}{\sum \cos(2\pi j/T)^2}\right)^2\right] = \sigma^2_k +\sigma^2_0\]
+(replace $\cos$ by $\sin$ in the above.)
+\end{itemize}
+\end{frame}
 
 \end{document}
+
+\begin{frame}
+
+\end{frame}
+
+
 
 
 
