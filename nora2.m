@@ -62,7 +62,7 @@ clear i Design_Matrix
 Response_smooth=zeros(time*10,1);
 idx=1:672;
 for i=1:10
-    Response_smooth(idx) = smooth(Response(idx), 0.8, 'lowess');
+    Response_smooth(idx) = smooth(Response(idx), 0.8, 'loess');
     idx=idx+672;
 end
 
