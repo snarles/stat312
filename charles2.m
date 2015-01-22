@@ -14,7 +14,7 @@ plot(spm_hrf_01)
 % Treat the first 6 calibration as "14"th to "19"th stimuli.
 
 sel_vox = vox100s;
-ind = 2;
+ind = 6;
 cur_block = sel_vox{ind};
 stim_block_12 = seqVal(:,ind);
 stim_block_12(stim_block_12 > 0) = stim_block_12(stim_block_12 > 0)- (ind-1)*12; % there are 12 stimuli
@@ -81,6 +81,10 @@ figure; plot(stim_amps)
 figure; plot(hrf_params)
 
 %% effect of each event
+
+spm_params = spm_hrf_01(-9+ 10*(1:len_hrf));
+[event_amps, yhat] = fit_amps_l2( y, spm_params, stim_block_all,l2p_a(1));
+figure; scatter(sub_stim_block, event_amps); hold on; plot([12.5,12.5],[-10,10])
 
 [event_amps, yhat] = fit_amps_l2( y, hrf_params, stim_block_all,l2p_a(1));
 figure; plot(event_amps)
