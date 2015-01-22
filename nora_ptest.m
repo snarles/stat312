@@ -1,7 +1,7 @@
 clear; clc;
 load results.mat
 
-fit_types={'SPM','HRFfit','GLS'};
+fit_types={'SPM','HRFfit','GLS','LOESS'};
 p=zeros(3,13,13);
 
 for fit=1:3
@@ -14,6 +14,19 @@ for fit=1:3
         end
     end
 end
+
+%{
+amps=results.LOESS.amp;
+for image_A=1:13
+    a=results.images==image_A;
+    image_A_responses=amps(a(7:end));
+    for image_B=1:image_A
+        b=results.images==image_B;
+        image_B_responses=amps(b(7:end));
+        [~,p(4,image_A,image_B),~,~]=ttest2(image_A_responses, image_B_responses);
+    end
+end
+%}
 
 clear image_A image_B image_A_responses image_B_responses fit
 

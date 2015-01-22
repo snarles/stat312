@@ -99,10 +99,71 @@
 
 
 \begin{frame}
+\frametitle{Estimating amplitudes}
+Estimate the stimuli-specific amplitudes $\alpha = (\alpha_1,\hdots,\alpha_K)$ by fitting the model
+\[
+y \sim H(h) S \alpha  + \text{const}= \begin{bmatrix}
+h_1 & 0 & 0 & \cdots\\
+h_2 & h_1 & 0 & \cdots\\
+h_3 & h_2 & h_1 & \cdots\\
+h_4 & h_3 & h_2 & \cdots\\
+h_5 & h_4 & h_3 & \cdots\\
+\vdots & \vdots & \vdots & \vdots
+\end{bmatrix}
+\begin{bmatrix}
+1 & 0 & 0 & 0\\
+0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0\\
+0 & 0 & 0 & 0\\
+0 & 0 & 1 & 0\\
+\vdots & \vdots & \vdots & \vdots
+\end{bmatrix}
+\begin{bmatrix}
+\alpha_1\\\alpha_2\\\alpha_3\\\vdots
+\end{bmatrix}  + \text{const}
+\]
+\end{frame}
+
+
+\begin{frame}
+\frametitle{Estimating HRF}
+Suppose instead that $\alpha$ is known and $h$ is unknown.  Then let $t = S\alpha = (t_1,t_2,\hdots)$ and define
+\[
+A(S\alpha) = \begin{bmatrix}
+t_1 & 0 & 0 & \cdots\\
+t_2 & t_1 & 0 & \cdots\\
+t_3 & t_2 & t_1 & \cdots\\
+t_4 & t_3 & t_2 & \cdots\\
+t_5 & t_4 & t_3 & \cdots\\
+\vdots & \vdots & \vdots & \vdots
+\end{bmatrix}
+\]
+Dimension of $A(S\alpha)$ is $T \times L$, where $L$ is duration of HRF.
+Then fit
+\[
+y \sim A(S\alpha) h + \text{const}
+\]
+Fit $h$ and $\alpha$ in alternating fashion until convergence.
+\end{frame}
+
+\begin{frame}
+\frametitle{Comparisons}
+%Events estimated with
+%\begin{tabular}{ccc}
+%\includegraphics[scale=0.15]{ex2_data1c_spm.pdf} & 
+%\includegraphics[scale=0.15]{ex2_data1c.pdf} & 
+%\includegraphics[scale=0.15]{ex2_data2.pdf}\\
+%SPM & fitted HRF & fitted $h$ and GLS
+%\end{tabular}
+\includegraphics[scale=0.59]{fig.pdf}
+\end{frame}
+
+
+\begin{frame}
 \frametitle{Estimating HRF and amplitudes}
 \begin{itemize}
-\item Use one block at a time
-\item Code the twelve stimuli as 1-12, the ``null'' signal as 13, and the 6 ``calibration'' signals as 14-19
+% \item Use one block at a time
+\item Code the twelve stimuli as 1-12 in one block, the ``null'' signal as 13, and the 6 ``calibration'' signals as 14-19
 \item Transform stimuli assignments to a matrix $S$,
 dimension of $S$ is $T \times K$, $T$ is the time of time points, $K$ the number of stimuli types
 \[
@@ -142,59 +203,8 @@ h_5 & h_4 & h_3 & \cdots\\
 \vdots & \vdots & \vdots & \vdots
 \end{bmatrix}
 \]
-
 \end{frame}
 
-\begin{frame}
-\frametitle{Estimating amplitudes}
-
-Estimate the stimuli-specific amplitudes $\alpha = (\alpha_1,\hdots,\alpha_K)$ by fitting the model
-\[
-y \sim H(h) S \alpha  + \text{const}= \begin{bmatrix}
-h_1 & 0 & 0 & \cdots\\
-h_2 & h_1 & 0 & \cdots\\
-h_3 & h_2 & h_1 & \cdots\\
-h_4 & h_3 & h_2 & \cdots\\
-h_5 & h_4 & h_3 & \cdots\\
-\vdots & \vdots & \vdots & \vdots
-\end{bmatrix}
-\begin{bmatrix}
-1 & 0 & 0 & 0\\
-0 & 0 & 0 & 0\\
-0 & 0 & 0 & 0\\
-0 & 0 & 0 & 0\\
-0 & 0 & 1 & 0\\
-\vdots & \vdots & \vdots & \vdots
-\end{bmatrix}
-\begin{bmatrix}
-\alpha_1\\\alpha_2\\\alpha_3\\\vdots
-\end{bmatrix}  + \text{const}
-\]
-
-\end{frame}
-
-
-\begin{frame}
-\frametitle{Estimating HRF}
-Suppose instead that $\alpha$ is known and $h$ is unknown.  Then let $t = S\alpha = (t_1,t_2,\hdots)$ and define
-\[
-A(S\alpha) = \begin{bmatrix}
-t_1 & 0 & 0 & \cdots\\
-t_2 & t_1 & 0 & \cdots\\
-t_3 & t_2 & t_1 & \cdots\\
-t_4 & t_3 & t_2 & \cdots\\
-t_5 & t_4 & t_3 & \cdots\\
-\vdots & \vdots & \vdots & \vdots
-\end{bmatrix}
-\]
-Dimension of $A(S\alpha)$ is $T \times L$, where $L$ is duration of HRF.
-Then fit
-\[
-y \sim A(S\alpha) h + \text{const}
-\]
-
-Fit $h$ and $\alpha$ in alternating fashion until convergence.
-\end{frame}
 
 \begin{frame}
 \frametitle{Regularization}
@@ -209,7 +219,6 @@ Similarly, fit
 \alpha = \text{argmin} ||y - H(h)S\alpha + c||^2 + \lambda_\alpha ||\alpha||^2
 \]
 Again, alternate until convergence.
-
 \end{frame}
 
 \begin{frame}
@@ -273,21 +282,9 @@ Naive estimate $rr'$ & GP estimate
 \end{tabular}
 \end{frame}
 
-\begin{frame}
-\frametitle{Comparisons}
-Events estimated with
-\begin{tabular}{ccc}
-\includegraphics[scale=0.15]{ex2_data1c_spm.pdf} & 
-\includegraphics[scale=0.15]{ex2_data1c.pdf} & 
-\includegraphics[scale=0.15]{ex2_data2.pdf}\\
-SPM & fitted HRF & fitted $h$ and GLS
-\end{tabular}
-\end{frame}
 
 
 \end{document}
-
-
 
 
 
