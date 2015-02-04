@@ -1,0 +1,76 @@
+Exercise 3
+========================================================
+Nora Brackbill and Charles Zheng
+
+## Load the data
+
+```{r}
+setwd("Ex3")
+for (f in list.files()) {
+  if (substring(f,nchar(f)-4, nchar(f))=="RData") {
+    load(f)
+  }
+}
+setwd("..")
+n_train = 1750
+n_valid = 120
+n_voxel = 15
+library("glmnet")
+```
+
+## Fit the model
+
+In a previous analysis,
+we determined we were best able to model voxel 2 in terms of error,
+and we decided to use Lasso penalty.
+
+```{r}
+voxel <- 2
+res <- cv.glmnet(x = feature_train, y = train_resp[,voxel], alpha = 1, type.measure="mse")
+```
+
+What is the best regularization parameter to use?
+
+```{r fig.width=5, fig.height=6}
+plot(res)
+```
+
+What do the coefficients of the model look like at that lambda?
+
+```{r fig.width=5, fig.height=6}
+l <- res$lambda.min
+beta_vec <- coef(res, s = l)
+plot(beta_vec)
+```
+
+What does the corresponding filter look like?
+
+```{r fig.width=5, fig.height=6}
+filter <- wav.pyr %*% beta_vec[1:10921] ;
+filter <- matrix(filter, nrow=128, byrow=FALSE)
+image(abs(filter))
+```
+
+Let's see if the result is stable given subsampling our data.
+
+```{r fig.width=5, fig.height=6}
+sub_inds <- sample(n_train, floor(n_train)/2)
+res <- cv.glmnet(x = feature_train[sub_inds, ], y = train_resp[sub_inds, voxel], alpha = 1, type.measure="mse")
+l <- res$lambda.min
+beta_vec <- coef(res, s = l)
+filter <- wav.pyr %*% beta_vec[1:10921] ;
+filter <- matrix(filter, nrow=128, byrow=FALSE)
+image(abs(filter))
+```
+
+Not really, now try elastic net
+```{r fig.width=5, fig.height=6}
+sub_inds <- sample(n_train, floor(n_train)/2)
+res <- cv.glmnet(x = feature_train[sub_inds, ], y = train_resp[sub_inds, voxel], alpha = 0.5, type.measure="mse")
+l <- res$lambda.min
+beta_vec <- coef(res, s = l)
+filter <- wav.pyr %*% beta_vec[1:10921] ;
+filter <- matrix(filter, nrow=128, byrow=FALSE)
+image(abs(filter))
+```
+
