@@ -10,19 +10,19 @@ for i=1:length(files)
 end
 
 %% Set up training and testing data
-A_train=train_stim(1:1500,:);
-A_test=train_stim(1501:end,:);
+A_train=feature_train(1:1500,:);
+A_test=feature_train(1501:end,:);
 
 %%
-for voxel=1:15
+for voxel=1:1
     
     % Define training and testing
     Y_train=train_resp(1:1500,voxel);
     Y_rec=train_resp(1501:end,voxel);
     
     % Least norm solution
-    % X=A_train'/(A_train*A_train') * Y_train;
-    X=(A_train'*A_train)\ A_train' * Y_train;
+    X=A_train'/(A_train*A_train') * Y_train;
+    % X=(A_train'*A_train)\ A_train' * Y_train;
     
     %Filter=reshape(X, 128, 128);
     %figure(1); imagesc(Filter); axis image; colormap gray; axis off
