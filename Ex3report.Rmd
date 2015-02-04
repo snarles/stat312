@@ -45,12 +45,17 @@ plot(beta_vec)
 ```
 
 What does the corresponding filter look like?
-
-```{r fig.width=5, fig.height=6}
-filter <- wav.pyr %*% beta_vec[1:10921] ;
-filter <- matrix(filter, nrow=128, byrow=FALSE)
-image(abs(filter))
+```{r}
+get_filter <- function(beta_vec) {
+  inds <- which(beta_vec[-1] > 0)
+  cplx <- cos(2*pi*runif(length(inds))) + sin(2*pi*runif(length(inds)))
+  filter <- t(cplx * t(wav.pyr[, inds])) %*% beta_vec[inds]
+  filter <- matrix(filter, nrow=128, byrow=FALSE)
+  return (Re(filter))
+}
+image(get_filter(beta_vec))
 ```
+
 
 Let's see if the result is stable given subsampling our data.
 
@@ -59,9 +64,9 @@ sub_inds <- sample(n_train, floor(n_train)/2)
 res <- cv.glmnet(x = feature_train[sub_inds, ], y = train_resp[sub_inds, voxel], alpha = 1, type.measure="mse")
 l <- res$lambda.min
 beta_vec <- coef(res, s = l)
-filter <- wav.pyr %*% beta_vec[1:10921] ;
-filter <- matrix(filter, nrow=128, byrow=FALSE)
-image(abs(filter))
+plot(beta_vec)
+
+image(get_filter(beta_vec))
 ```
 
 Not really, now try elastic net
@@ -70,17 +75,8 @@ sub_inds <- sample(n_train, floor(n_train)/2)
 res <- cv.glmnet(x = feature_train[sub_inds, ], y = train_resp[sub_inds, voxel], alpha = 0.5, type.measure="mse")
 l <- res$lambda.min
 beta_vec <- coef(res, s = l)
-filter <- wav.pyr %*% beta_vec[1:10921] ;
-filter <- matrix(filter, nrow=128, byrow=FALSE)
-image(abs(filter))
-```
+plot(beta_vec)
 
-This results in some pattern, to represent the nonlinear transform we should randomize the phases
-```{r fig.width=5, fig.height=6}
-wav.pyr2 <- t(t(wav.pyr) * (cos(2*pi*runif(n_basis)) + 1i*sin(2*pi*runif(n_basis))))
-filter <- wav.pyr %*% beta_vec[1:10921] ;
-filter <- matrix(filter, nrow=128, byrow=FALSE)
-image(abs(filter))
-
+image(get_filter(beta_vec))
 ```
 
