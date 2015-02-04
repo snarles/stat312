@@ -15,6 +15,7 @@ setwd("..")
 n_train = 1750
 n_valid = 120
 n_voxel = 15
+n_basis = 10921
 library("glmnet")
 ```
 
@@ -72,5 +73,14 @@ beta_vec <- coef(res, s = l)
 filter <- wav.pyr %*% beta_vec[1:10921] ;
 filter <- matrix(filter, nrow=128, byrow=FALSE)
 image(abs(filter))
+```
+
+This results in some pattern, to represent the nonlinear transform we should randomize the phases
+```{r fig.width=5, fig.height=6}
+wav.pyr2 <- t(t(wav.pyr) * (cos(2*pi*runif(n_basis)) + 1i*sin(2*pi*runif(n_basis))))
+filter <- wav.pyr %*% beta_vec[1:10921] ;
+filter <- matrix(filter, nrow=128, byrow=FALSE)
+image(abs(filter))
+
 ```
 
