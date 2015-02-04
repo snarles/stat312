@@ -1,9 +1,9 @@
 %% Load Data
 files=dir('EX3Data');
-for i=1:length(files)
+for i=3:length(files)
     filename=files(i).name;
     disp(['Loading ' filename])
-    if ~strcmp(filename(1),'.')
+    if ~strcmp(filename(1),'.') && strcmp(filename(end-2:end), 'csv')
         eval([filename(1:end-4) '= csvread(''EX3Data/' filename ''',1,0);'])
     end
     
