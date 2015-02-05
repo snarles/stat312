@@ -46,9 +46,9 @@ beta_vec <- coef(res, s = l)
 plot(beta_vec)
 
 # Look at filters -------
-filter <- wav.pyr %*% beta_vec[1:10921] ;
+filter <- wav.pyr %*% beta_vec[2:10922] ;
 filter <- matrix(filter, nrow=128, byrow=FALSE)
-image(abs(filter))
+image(Real(filter))
 
 # Look at predictions ----------
 y_predict <- predict(res,feature_valid, s = l)
