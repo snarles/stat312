@@ -2,9 +2,17 @@ Exercise 3
 ========================================================
 Nora Brackbill and Charles Zheng
 
+## Model
+
+We used the lasso objective function $||y - X\beta||^2 + \lambda ||\beta||_1$ to fit a linear model of the features. In a previous analysis, we tried both lasso and ridge, and found that lasso worked slightly better. We also determined that we were best able to model voxel 2.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+```
+
 ## Load the data
 
-```{r}
+```{r, cache=FALSE}
 setwd("Ex3")
 for (f in list.files()) {
   if (substring(f,nchar(f)-4, nchar(f))=="RData") {
@@ -20,10 +28,6 @@ library("glmnet")
 ```
 
 ## Fit the model
-
-In a previous analysis,
-we determined we were best able to model voxel 2 in terms of error,
-and we decided to use Lasso penalty.
 
 ```{r}
 voxel <- 2
@@ -45,7 +49,7 @@ plot(beta_vec)
 ```
 
 What does the corresponding filter look like?
-```{r}
+```{r fig.width=5, fig.height=6}
 get_filter <- function(beta_vec) {
   inds <- which(beta_vec[-1] > 0)
   cplx <- cos(2*pi*runif(length(inds))) + sin(2*pi*runif(length(inds)))
@@ -69,7 +73,11 @@ plot(beta_vec)
 image(get_filter(beta_vec))
 ```
 
-Not really, now try elastic net
+
+
+It is sort of stable in that the filters look the same, but those two very large parameters in the first model are now gone. We also tried elastic net, which has the objective $||y - X\beta||^2 + \alpha \lambda ||\beta||_1 + (1-\alpha) ||\beta||^2$.
+
+
 ```{r fig.width=5, fig.height=6}
 sub_inds <- sample(n_train, floor(n_train)/2)
 res <- cv.glmnet(x = feature_train[sub_inds, ], y = train_resp[sub_inds, voxel], alpha = 0.5, type.measure="mse")
