@@ -51,7 +51,7 @@ filter <- matrix(filter, nrow=128, byrow=FALSE)
 image(Real(filter))
 
 # Look at predictions ----------
-y_predict <- predict(res,feature_valid, s = l)
+y_predict <- predict(res,feature_valid, s = res$lambda.min)
 
 # Scatter plot
 plot(y_predict, valid_resp[,voxel])
