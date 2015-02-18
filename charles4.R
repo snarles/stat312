@@ -28,10 +28,14 @@ features <- which(features_mask)
 vertical_features <-vh==5
 horizontal_features <- vh==1
 
+contrast_vec = c(0, -1 * vertical_features + 1 * horizontal_features)
+
 # Fit linear model
 X = feature_train[, features]
 res <- lm(train_resp ~ X)
 library(car)
+res2 <- linearHypothesis(res, t(contrast_vec))
+
 
 beta <- solve(t(X)%*%X)%*%t(X)%*%train_resp
 verticalness<-colSums(abs(beta[vertical_features,]))
