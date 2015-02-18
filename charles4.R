@@ -35,6 +35,8 @@ X = feature_train[, features]
 res <- lm(train_resp ~ X)
 library(car)
 res2 <- linearHypothesis(res, t(contrast_vec))
+res2$test
+
 
 
 beta <- solve(t(X)%*%X)%*%t(X)%*%train_resp
