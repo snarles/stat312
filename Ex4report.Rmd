@@ -1,0 +1,139 @@
+Exercise 4
+========================================================
+Nora Brackbill and Charles Zheng
+
+## Model
+
+FDR
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+```
+
+## Load the data
+
+```{r, cache=FALSE}
+library('car')
+library('pdist')
+load('ex4.RData')
+```
+
+## Visualize the filters
+
+```{r fig.width=5, fig.height=6}
+rematwav <- function(ind, wav = wav.pyr) {
+  wav <- matrix(Re(wav[, ind]), 128, 128)
+}
+old.par <- par()
+layout(matrix(1:42, 7, 6))
+par(mar = c(0,0,0,0))
+for (i in which(vertical_features)) {
+  image(rematwav(i, wav.pyr42))  
+}
+for (i in which(horizontal_features)) {
+  image(rematwav(i, wav.pyr42))  
+}
+par(old.par)
+```
+
+## Get the p-values
+
+```{r}
+contrast_vec <- c(0, -1 * vertical_features + 
+                   1 * horizontal_features)
+nvoxels <- dim(train_resp)[2]
+pvs <- numeric(nvoxels)
+for (vox in 1:nvoxels) {
+  res <- lm(train_resp[, vox] ~ X)
+  res2 <- linearHypothesis(res, t(contrast_vec))
+  pvs[vox] <- res2$'Pr(>F)'[2]
+}
+```
+
+How many are significant at level 0.1?
+
+```{r}
+sum(pvs < .1)
+```
+
+## Plot the p-values
+
+```{r fig.width=7, fig.height=6}
+coords <- vl[pvs < .1, ]
+plot(vl[,1], vl[,2], col='grey')
+points(coords[,1], coords[,2], col='red')
+```
+
+Is there clustering? Compare to completely random.
+
+```{r fig.width=7, fig.height=6}
+lala <- vl[runif(nvoxels) < .1, ]
+plot(vl[,1], vl[,2], col='grey')
+points(lala[,1], lala[,2], col='red')
+```
+
+## Exploring the local correlation structure
+
+Plot nearest-neighbor pairs
+
+```{r fig.width=5, fig.height=6}
+dm <- as.matrix(pdist(vl, vl))
+pairsX <- row(dm)[dm ==1]
+pairsY <- col(dm)[dm ==1]
+filt <- pairsX < pairsY
+pairsX <- pairsX[filt]
+pairsY <- pairsY[filt]
+plot(pvs[pairsX], pvs[pairsY], col=rgb(0,0,0, alpha = .5))
+```
+
+Log plot
+
+```{r fig.width=5, fig.height=6}
+plot(log(pvs[pairsX]), log(pvs[pairsY]), col=rgb(0,0,0, alpha = .5))
+```
+
+## Bonferroni correction
+
+How many are significant at FWER = 0.3?
+
+```{r}
+sig_voxels <- pvs < .3/nvoxels
+sum(sig_voxels)
+```
+
+Plot:
+
+```{r fig.width=7, fig.height=6}
+coords <- vl[sig_voxels, ]
+plot(vl[,1], vl[,2], col='grey')
+points(coords[,1], coords[,2], col='red')
+```
+
+## BH procedure
+
+Plot of BH estimated FDP
+```{r fig.width=5, fig.height=6}
+sorted_pvs <- sort(pvs)
+fdps <- sorted_pvs * nvoxels/(1:nvoxels)
+plot(log(sorted_pvs), fdps)
+```
+
+Get the p-value threshold for FDR = 0.3
+```{r}
+pthres <- max(sorted_pvs[fdps < 0.3])
+pthres
+```
+
+How many are rejected?
+```{r}
+fdr_vox <- pvs <= pthres
+sum(fdr_vox)
+```
+
+Plot:
+
+```{r fig.width=7, fig.height=6}
+coords <- vl[fdr_vox, ]
+plot(vl[,1], vl[,2], col='grey')
+points(coords[,1], coords[,2], col='red')
+```
