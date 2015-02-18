@@ -22,13 +22,17 @@ features_mask <- orient_mask & level_mask & (conv_x == xchoice) & (conv_y == ych
 sum(features_mask)
 
 wav42 <- wav.pyr[, features_mask]
+vh <- featureAttr[1, features_mask]
 
-features <- 0:41
-vertical_features <-1:20
-horizontal_features <- 21:41
+features <- which(features_mask)
+vertical_features <-vh==5
+horizontal_features <- vh==1
 
 # Fit linear model
-X=feature_train[,features]
+X = feature_train[, features]
+res <- lm(train_resp ~ X)
+library(car)
+
 beta <- solve(t(X)%*%X)%*%t(X)%*%train_resp
 verticalness<-colSums(abs(beta[vertical_features,]))
 horizontalness<-colSums(abs(beta[horizontal_features,]))
