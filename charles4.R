@@ -2,9 +2,16 @@
 load("/Users/Nora/Desktop/classes/stat312/Ex3/wavpyr.RData")
 load("/Users/Nora/Desktop/classes/stat312/Ex3/feature_train.RData")
 load("/Users/Nora/Desktop/classes/stat312/Ex3/train_resp.RData")
+load("/Users/Nora/Desktop/classes/stat312/Ex4/all_voxel_locations.RData")
 
 
 featureAttr <- as.matrix(read.csv(file='/Users/Nora/Desktop/classes/stat312/Ex4/featAttr.csv'))
+train_resp <- read.csv("/Users/Nora/Desktop/classes/stat312/Ex4/train_resp_all.csv")
+train_resp <- t(train_resp[voxel.loc[,3]==11, ])
+dim(train_resp)
+
+vl <- voxel.loc[voxel.loc[,3]==11, ]
+
 # load("/Users/Nora/Desktop/classes/stat312/Ex4")
 
 # Choose features ------
@@ -31,20 +38,26 @@ horizontal_features <- vh==1
 contrast_vec = c(0, -1 * vertical_features + 1 * horizontal_features)
 
 # Fit linear model
-X = feature_train[, features]
-res <- lm(train_resp ~ X)
 library(car)
-res2 <- linearHypothesis(res, t(contrast_vec))
-res2$test
+
+X = feature_train[, features]
+
+nvoxels <- dim(train_resp)[2]
+pvs = numeric(nvoxels)
+for (vox in 1:nvoxels) {
+  res <- lm(train_resp[, vox] ~ X)
+  res2 <- linearHypothesis(res, t(contrast_vec))
+  pvs[vox] = res2$'Pr(>F)'[2]
+}
+
+sum(pvs < .1)
+
+write.table(pvs, file="pvs.dat")
+
+coords <- vl[pvs < .1, ]
+lala <- vl[runif(nvoxels) < .1, ]
 
 
-
-beta <- solve(t(X)%*%X)%*%t(X)%*%train_resp
-verticalness<-colSums(abs(beta[vertical_features,]))
-horizontalness<-colSums(abs(beta[horizontal_features,]))
-test_statistic=verticalness-horizontalness
-
-# Null distribution should have mean 0, variance = ???
-resid <- X %*% beta - train_resp
-eps <- mean(diag(var(resid)))
-pnorm(test_statistic)
+plot(vl[,1], vl[,2], col='grey')
+points(lala[,1], lala[,2], col='red')
+points(coords[,1], coords[,2], col='red')

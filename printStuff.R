@@ -1,3 +1,4 @@
+digits = 2
 test <- x$test
 if (!is.null(x$P) && SSP) {
   P <- x$P
