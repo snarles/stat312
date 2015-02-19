@@ -108,3 +108,9 @@ for (vox in 1:nvoxels){
   P[vox]=res2$'Pr(>F)'[2]
 }
 
+#---------
+a=matrix(1,60,60)
+for (i in 1:nvoxels){ 
+  a[vl[i,1],vl[i,2]] <- pvs[i] 
+}
+image(a, axes=FALSE)

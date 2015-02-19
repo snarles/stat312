@@ -52,22 +52,28 @@ plot(1:nvoxels/nvoxels, sort(pvs), main="P-P Plot", xlab="Uniform", ylab="Calcul
 lines(0:1,0:1)
 ```
 
-How many are significant at level 0.1?
+## Plot the p-values aross the brain slice
 
-```{r}
-sum(pvs < .1)
+```{r fig.width=6, fig.height=6}
+a=matrix(1,60,60)
+for (i in 1:nvoxels){ 
+  a[vl[i,1],vl[i,2]] <- pvs[i] 
+}
+image(a[12:55,9:51], axes=FALSE)
 ```
 
-## Plot the brain slice
+## How many are significant at level 0.1, and where are they?
 
 ```{r fig.width=7, fig.height=6}
+sum(pvs < .1)
+
 plot(vl[,1], vl[,2], col='grey')
 points(vl[pvs < .1, ], col='red')
 ```
 
 ## Bonferroni correction
 
-What is the p-value threshold for the Bonferroni method at FWE=0.3?
+What is the p-value threshold for the Bonferroni method at FWE=0.3? 
 
 ```{r}
 p_bon <- 0.3/nvoxels
@@ -92,7 +98,8 @@ legend("bottomright",c("No Control", "Bonferonni"), col=c('red', 'black'), pch=c
 
 ## BH procedure
 
-Plot of BH estimated FDP
+The threshold p-value for BH is the highest p-value that was below the BH cutoff $p_i = i \frac{\alpha}{n}$. We used $\alpha$=0.3.
+
 ```{r fig.width=5, fig.height=6}
 alpha <- 0.3;
 for (vox in 1:nvoxels){
@@ -101,18 +108,13 @@ for (vox in 1:nvoxels){
   }
 }
 pthres<-alpha*vox/nvoxels
+print(pthres)
 plot(1:100/nvoxels, sort(pvs)[1:100], main="P-P Plot", xlab="Uniform", ylab="Calculated")
 lines(c(0,100/nvoxels),c(0,alpha*100/nvoxels),col='red')
 legend("bottomright", 'BH cutoff line',lty=1, col='red')
 ```
 
-What is the threshold from BH method?
-
-```{r}
-print(pthres)
-```
-
-How many are significant at FDR = 0.3?
+How many are significant?
 
 ```{r}
 fdr_vox <- pvs <= pthres
@@ -134,23 +136,33 @@ legend("bottomright",c("No control", "B-H FDR", "Bonferonni"), col=c('red', 'bla
 
 We randomized the images by reordering the rows of X, the design matrix.
 
-```{r fig.width=7, fig.height=6}
+```{r fig.width=7, fig.height=6, eval=FALSE,}
 nimages=dim(X)[1]
-n_repeats=20
+n_repeats=50
 P_min_null=numeric(n_repeats)
-for (i in 1:n_repeats){
+ for (i in 1:n_repeats){
   X_random=X[sample(1:nimages),]
   P_null = numeric(nvoxels)
   for (j in 1:nvoxels){
     res <- lm(train_resp[,j] ~ X_random)
     res2 <- linearHypothesis(res, t(contrast_vec))
-    P_null[j]=res2$'Pr(>F)'[2]
+    P_null[j]= res2$'Pr(>F)'[2]
   }
   P_min_null[i]=min(P_null)
 }
-hist(P_min_null,breaks=10, xlim=c(0,pthres+0.001))
-lines(c(p_bon, p_bon),c(0,3), col='red')
-lines(c(pthres, pthres),c(0,3), col='blue')
-legend("bottomright", c('Bonferonni','BH FDR'),lty=1, col=c('red','blue'))
+hist(P_min_null,breaks=20, xlim=c(0,pthres+0.002))
+lines(c(p_bon, p_bon),c(0,50), col='red')
+lines(c(pthres, pthres),c(0,50), col='blue')
+legend("topright", c('Bonferonni','BH FDR'),lty=1, col=c('red','blue'))
+save(file='p_min.RData', P_min_null)
 ```
 
+```{r fig.width=7, fig.height=6, echo=FALSE}
+nimages=dim(X)[1]
+n_repeats=50
+load('p_min.RData')
+hist(P_min_null, breaks=20, xlim=c(0,pthres+0.002))
+lines(c(p_bon, p_bon),c(0,50), col='red', lwd=2)
+lines(c(pthres, pthres),c(0,50), col='blue', lwd=2)
+legend("topright", c('Bonferonni','BH FDR'),lty=1, col=c('red','blue'))
+```
