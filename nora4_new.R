@@ -71,16 +71,15 @@ for (vox in 1:nvoxels){
     break
   }
 }
-plot(vl, col='grey')
-
+plot(vl, col='grey', pch=20)
 # Just P < 0.1
-points(vl[P<0.1,], col='red') # some structure I guess
-
+points(vl[P<0.1,], col='red', pch=20) # some structure I guess
 # BH FDR control
-points(vl[order(P)[1:15],], col='black')
-
+points(vl[order(P)[1:15],], col='black', pch='o')
 # Bonferonni control
-points(vl[P<p_bon,],col='green') # soo basically nothing so sad
+points(vl[P<p_bon,],col='black', pch='|') # soo basically nothing so sad
+legend("bottomright",c("No control", "B-H FDR", "Bonferonni"), col=c('red', 'black', 'black'), pch=c('o','o','|'))
+
 
 # FWE by permutation ---------------
 # randomize images by reordering rows of X, the design matrix
@@ -90,15 +89,22 @@ P_min_null=numeric(n_repeats)
 for (i in 1:n_repeats){
   X_random=X[sample(1:nimages),]
   P_null = numeric(nvoxels)
-  for (vox in 1:nvoxels){
-    res <- lm(train_resp[,vox] ~ X_random)
+  for (j in 1:nvoxels){
+    res <- lm(train_resp[,j] ~ X_random)
     res2 <- linearHypothesis(res, t(contrast_vec))
-    P_null[vox]=res2$'Pr(>F)'[2]
+    P_null[j]=res2$'Pr(>F)'[2]
   }
   P_min_null[i]=min(P_null)
   print(i)
 }
+hist(P_min_null,breaks=10)
+lines(c(p_bon, p_bon),c(0,3), col='red')
+lines(c(alpha*vox/nvoxels, alpha*vox/nvoxels),c(0,3), col='blue')
 
-
-
+# Check on Validation Data --------------------------
+for (vox in 1:nvoxels){
+  res <- lm(train_resp[,vox] ~ X)
+  res2 <- linearHypothesis(res, t(contrast_vec))
+  P[vox]=res2$'Pr(>F)'[2]
+}
 
