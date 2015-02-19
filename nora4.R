@@ -5,6 +5,8 @@ load("/Users/Nora/Desktop/classes/stat312/Ex3/train_resp.RData")
 
 
 featureAttr <- read.csv(file='/Users/Nora/Desktop/classes/stat312/Ex4/featAttr.csv')
+train_resp_all <- read.csv(file='/Users/Nora/Desktop/classes/stat312/Ex4/train_resp_all.csv')
+
 # load("/Users/Nora/Desktop/classes/stat312/Ex4")
 
 # Choose features ------
