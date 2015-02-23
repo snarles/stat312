@@ -143,7 +143,7 @@ hold off
 title('ISI Distribution')
 
 %% Real neural data
-
+load('spike_dat.mat')
 
 
 
