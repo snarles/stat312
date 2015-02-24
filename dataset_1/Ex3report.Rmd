@@ -1,0 +1,90 @@
+Exercise 3
+========================================================
+Nora Brackbill and Charles Zheng
+
+## Model
+
+We used the lasso objective function $||y - X\beta||^2 + \lambda ||\beta||_1$ to fit a linear model of the features. In a previous analysis, we tried both lasso and ridge, and found that lasso worked slightly better. We also determined that we were best able to model voxel 2.
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+```
+
+## Load the data
+
+```{r, cache=FALSE}
+setwd("Ex3")
+for (f in list.files()) {
+  if (substring(f,nchar(f)-4, nchar(f))=="RData") {
+    load(f)
+  }
+}
+setwd("..")
+n_train = 1750
+n_valid = 120
+n_voxel = 15
+n_basis = 10921
+library("glmnet")
+```
+
+## Fit the model
+
+```{r}
+voxel <- 2
+res <- cv.glmnet(x = feature_train, y = train_resp[,voxel], alpha = 1, type.measure="mse")
+```
+
+What is the best regularization parameter to use?
+
+```{r fig.width=5, fig.height=6}
+plot(res)
+```
+
+What do the coefficients of the model look like at that lambda?
+
+```{r fig.width=5, fig.height=6}
+l <- res$lambda.min
+beta_vec <- coef(res, s = l)
+plot(beta_vec)
+```
+
+What does the corresponding filter look like?
+```{r fig.width=5, fig.height=6}
+get_filter <- function(beta_vec) {
+  inds <- which(beta_vec[-1] > 0)
+  cplx <- cos(2*pi*runif(length(inds))) + sin(2*pi*runif(length(inds)))
+  filter <- t(cplx * t(wav.pyr[, inds])) %*% beta_vec[inds]
+  filter <- matrix(filter, nrow=128, byrow=FALSE)
+  return (Re(filter))
+}
+image(get_filter(beta_vec))
+```
+
+
+Let's see if the result is stable given subsampling our data.
+
+```{r fig.width=5, fig.height=6}
+sub_inds <- sample(n_train, floor(n_train)/2)
+res <- cv.glmnet(x = feature_train[sub_inds, ], y = train_resp[sub_inds, voxel], alpha = 1, type.measure="mse")
+l <- res$lambda.min
+beta_vec <- coef(res, s = l)
+plot(beta_vec)
+
+image(get_filter(beta_vec))
+```
+
+
+
+It is sort of stable in that the filters look the same, but those two very large parameters in the first model are now gone. We also tried elastic net, which has the objective $||y - X\beta||^2 + \alpha \lambda ||\beta||_1 + (1-\alpha) ||\beta||^2$.
+
+
+```{r fig.width=5, fig.height=6}
+sub_inds <- sample(n_train, floor(n_train)/2)
+res <- cv.glmnet(x = feature_train[sub_inds, ], y = train_resp[sub_inds, voxel], alpha = 0.5, type.measure="mse")
+l <- res$lambda.min
+beta_vec <- coef(res, s = l)
+plot(beta_vec)
+
+image(get_filter(beta_vec))
+```
+
