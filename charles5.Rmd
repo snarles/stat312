@@ -54,7 +54,7 @@ lines(breaks, scaling * dexp(breaks, rate_hat))
 Supposing we bin by 5 ms, how many repeats will we get?
 
 ```{r}
-binwidth = 5
+binwidth <- 5
 binmat <- diag(rep(1, 500/binwidth)) %x% matrix(1, binwidth, 1)
 dim(binmat)
 binned <- x %*% binmat
@@ -66,7 +66,7 @@ Coerce the 2s to 1s and fit the autoregressive logistic model
 ```{r, fig.width=5, fig.height=3}
 library(glmnet)
 binned[binned > 1] <- 1
-ord <- 10 # order of the autoregressive model by bins
+ord <- 20 # order of the autoregressive model by bins
 create_ar_matrix <- function(x, order) {
   n <- length(x) - order
   ans <- matrix(0, n, order)
@@ -87,12 +87,17 @@ abline(0, 0)
 title("Logistic autoregression")
 ```
 
+The empirical proportion
+```{r}
+sum(expanded[,1])/length(expanded[,1])
+```
+
 Simulate a sequence starting from zeros
 ```{r, fig.width=5, fig.height=3}
-seq <- rep(0, 10)
+seq <- rep(0, ord)
 nseq <- 100000
 for (i in 1:nseq) {
-  prev <- seq[(length(seq)-ord+2):length(seq)]
+  prev <- rev(seq[(length(seq)-ord+2):length(seq)])
   temp <- coeffs[1] + sum(coeffs[-1] * prev)
   prob <- exp(temp)/(1+exp(temp))
   new_y <- rbinom(1, 1, prob)
@@ -102,12 +107,33 @@ plot(seq[500:1000], type="l")
 title("spikes")
 ```
 
+Check the simulatied proportion
+```{r}
+sum(seq[500:nseq])/length(500:nseq)
+```
+
 Compute the ISIs of the simulated spikes (minus a burn-in)
 ```{r, fig.width=5, fig.height=3}
 temp <- which(seq[500:nseq]==1)
-sim_isi_s <- temp[-1] - temp[-length(temp)]
-hist(sim_isi_s)
+sim_isi_s <- binwidth * (temp[-1] - temp[-length(temp)])
+hist(sim_isi_s, 20)
 ```
 
-It still doesn't look right! Give up...
+We have a censoring issue, since empirical ISIs are limited by the size of the interval (500ms)
+Therefore we need to chunk the simulated ISIs into bins of size 500 and take the distribution that would be observed.
+
+```{r}
+stimes <- cumsum(sim_isi_s)
+intervals <- floor(stimes / 500)
+sim_observed_isi_s <- (stimes[-1] - stimes[-length(stimes)])[intervals[-1] == intervals[-length(stimes)]]
+hist(sim_observed_isi_s)
+```
+
+Now compare the plots
+
+```{r, fig.width=5, fig.height=5}
+length(isi_s)
+plot(quantile(sim_observed_isi_s, 1:length(isi_s)/length(isi_s)), sort(isi_s))
+abline(0, 1)
+```
 
