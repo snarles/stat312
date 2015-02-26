@@ -1,20 +1,113 @@
 ---
-title: "charles5"
+title: "Empirically fitting the spike data"
 output: html_document
 ---
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+Read in the data.
 
 ```{r}
-summary(cars)
+library(R.matlab)
+dat <- readMat('/home/snarles/stat312data/spike_dat.mat')
+trial <- dat$trial
+dim(trial)
+length(as.vector(trial[2, 1 ,1]$spikes)) # 500
+angles <- c(30, 70, 110, 150, 190, 230, 310, 350)/180 * pi
+temp <- trial[2, , ]
+spikes <- array(0, c(8, 182, 500))
+for (i in 1:8) {
+  for (j in 1:182) {
+    spikes[i, j, ] = as.vector(trial[2, j, i]$spikes)
+  }
+}
 ```
 
-You can also embed plots, for example:
-
-```{r, echo=FALSE}
-plot(cars)
+Mean rates for each angle
+```{r, fig.width=6, fig.height=3}
+meanrates <- apply(spikes, 1, mean)
+plot(angles, meanrates, type='l', ylab = "spikes per ms", xlab = "reaching angle (radians)")
+for (k in 1:8) {
+  text(angles[k], meanrates[k], paste(k))
+}
+title("Mean firing rate by k")
 ```
 
-Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+Choose k = 6, get ISIs
+
+```{r}
+x <- spikes[6, , ]
+temp <- apply(x, 1, function(v) which(v==1))
+temp <- lapply(temp, function(v) v[-1]-v[-length(v)] )
+isi_s <- unlist(temp)
+```
+
+Histogram vs exponential fit
+```{r, fig.width=5, fig.height=3}
+max(isi_s)
+breaks <- seq(0, 310, 10)
+hist(isi_s, breaks = breaks)
+rate_hat <- 1/mean(isi_s)
+scaling <- length(isi_s) * 10
+est <- dexp(breaks, rate_hat)
+lines(breaks, scaling * dexp(breaks, rate_hat))
+```
+
+Supposing we bin by 5 ms, how many repeats will we get?
+
+```{r}
+binwidth = 5
+binmat <- diag(rep(1, 500/binwidth)) %x% matrix(1, binwidth, 1)
+dim(binmat)
+binned <- x %*% binmat
+table(as.vector(binned))
+```
+
+Coerce the 2s to 1s and fit the autoregressive logistic model
+
+```{r, fig.width=5, fig.height=3}
+library(glmnet)
+binned[binned > 1] <- 1
+ord <- 10 # order of the autoregressive model by bins
+create_ar_matrix <- function(x, order) {
+  n <- length(x) - order
+  ans <- matrix(0, n, order)
+  for (i in 1:n) {
+    ans[i, ] <- rev(x[i:(i+order - 1)])
+  }
+  ans
+}
+expanded <- numeric(0)
+for (i in 1:dim(binned)[1]) {
+  expanded <- rbind(expanded, create_ar_matrix(binned[i, ], ord))
+}
+dim(expanded)
+res <- glm(expanded[, 1] ~ expanded[, -1], family = binomial)
+coeffs <- coef(res)
+plot(coef(res)[-1], type="o")
+abline(0, 0)
+title("Logistic autoregression")
+```
+
+Simulate a sequence starting from zeros
+```{r, fig.width=5, fig.height=3}
+seq <- rep(0, 10)
+nseq <- 100000
+for (i in 1:nseq) {
+  prev <- seq[(length(seq)-ord+2):length(seq)]
+  temp <- coeffs[1] + sum(coeffs[-1] * prev)
+  prob <- exp(temp)/(1+exp(temp))
+  new_y <- rbinom(1, 1, prob)
+  seq <- c(seq, new_y)
+}
+plot(seq[500:1000], type="l")
+title("spikes")
+```
+
+Compute the ISIs of the simulated spikes (minus a burn-in)
+```{r, fig.width=5, fig.height=3}
+temp <- which(seq[500:nseq]==1)
+sim_isi_s <- temp[-1] - temp[-length(temp)]
+hist(sim_isi_s)
+```
+
+It still doesn't look right! Give up...
+
