@@ -1,6 +1,6 @@
 %% Homogeneous Poisson process
 
-set(gca,'DefaultTextFontSize',18)
+set(0,'DefaultTextFontSize',32, 'DefaultAxesFontSize',18,'DefaultAxesFontName','Helvetica')
 n_trials=100;
 trial_length=1;
 
@@ -31,6 +31,7 @@ for k=0:7
     % Histogram
     figure(2);
     subplot(3,3,plot_order(k+1))
+    title(['s=' num2str(k) '\pi/4'])
     tmp=reshape(conv(spikes(:), ones(20,1), 'same'), n_bins, n_trials);
     spike_hist = sum(tmp,2)/n_trials;
     stairs(spike_hist(10:20:end))
@@ -44,6 +45,7 @@ for k=0:7
     % Count distribution
     figure(4);
     subplot(3,3,plot_order(k+1))
+    title(['s=' num2str(k) '\pi/4'])
     [counts,centers] = hist(temp);
     lambda_hat=poissfit(temp);
     plot(centers, 2*poisspdf(round(centers),lambda_hat), 'k')
@@ -56,6 +58,7 @@ for k=0:7
     % ISI
     figure(6);
     subplot(3,3,plot_order(k+1))
+    title(['s=' num2str(k) '\pi/4'])
     ISI=diff(find(spikes))/1000;
     mean_ISI(k+1)=mean(ISI);
     Cv_ISI(k+1)=std(ISI)/mean(ISI);
@@ -70,6 +73,9 @@ for k=0:7
 
 end
 
+figure(1);
+suptitle('Example Trials')
+
 % Tuning Curve
 figure(3);
 hold on
@@ -83,7 +89,9 @@ figure(5);
 hold on
 scatter(emp_firing_rate, emp_var.^2)
 plot([0 50],[0 50])
-title('Mean Firing Rate vs. Variance')
+title('Fano Factor for Homogenous Data')
+xlabel('Firing Rate')
+ylabel('Variance')
 
 % Coefficient of variation
 figure(7)
@@ -156,7 +164,7 @@ for k=1:8
     end
     
     % Plot the trials
-    figure(1);
+    figure(11);
     subplot(3,3,plot_order(k))
     % title(['s=' num2str(k) '\pi/4'])
     imagesc(spikes(:,1:5)'); colormap(flipud(gray));
@@ -165,7 +173,7 @@ for k=1:8
     set(gca,'XTick',[0 1000],'XTickLabel',[0 1])
     
     % Histogram
-    figure(2);
+    figure(12);
     subplot(3,3,plot_order(k))
     tmp=reshape(conv(spikes(:), ones(20,1), 'same'), n_bins, n_trials);
     spike_hist = sum(tmp,2)/n_trials;
@@ -178,7 +186,7 @@ for k=1:8
     emp_var(k)=std(temp);
     
     % Count distribution
-    figure(4);
+    figure(14);
     subplot(3,3,plot_order(k))
     [counts,centers] = hist(temp);
     lambda_hat=poissfit(temp);
@@ -190,7 +198,7 @@ for k=1:8
     ylim([0 0.5])
     
     % ISI
-    figure(6);
+    figure(16);
     subplot(3,3,plot_order(k))
     ISI=diff(find(spikes))/1000;
     mean_ISI(k)=mean(ISI);
@@ -202,24 +210,27 @@ for k=1:8
     plot(centers, counts/(n_trials), 'r')
     hold off
     xlim([0 0.5])
-    ylim([0 20])
+    ylim([0 10])
 
 end
 
 % Tuning Curve
-figure(3);
+figure(13);
 hold on
 errorbar(emp_firing_rate, emp_var/sqrt(n_trials), 'r')
 %plot(firing_rate((0:7)*pi/4), 'k')
-legend('Simulated Firing Rate', 'True Tuning Curve')
-title('Tuning Curve')
+%legend('Empirical Tuning Curve', 'Tuning Curve from PT A')
+title('Tuning Curve for Real Data')
 
 % Fano Factor
-figure(5);
+figure(15);
 hold on
 scatter(emp_firing_rate, emp_var.^2)
 plot([0 7],[0 7])
-title('Mean Firing Rate vs. Variance')
+axis square
+title('Fano Factor for Real Data')
+xlabel('Firing Rate')
+ylabel('Variance')
 
 
 

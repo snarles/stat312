@@ -1,0 +1,526 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>nora_Ex5</title><meta name="generator" content="MATLAB 7.14"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2015-02-25"><meta name="DC.source" content="nora_Ex5.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Homogeneous Poisson process</a></li><li><a href="#2">Heterogeneous</a></li><li><a href="#3">Real neural data</a></li></ul></div><h2>Homogeneous Poisson process<a name="1"></a></h2><pre class="codeinput">set(0,<span class="string">'DefaultTextFontSize'</span>,32, <span class="string">'DefaultAxesFontSize'</span>,18,<span class="string">'DefaultAxesFontName'</span>,<span class="string">'Helvetica'</span>)
+n_trials=100;
+trial_length=1;
+
+n_bins=1000*trial_length; <span class="comment">% 1ms bins</span>
+plot_order=[6, 9, 8, 7, 4, 1, 2, 3];
+
+
+<span class="keyword">for</span> k=0:7
+
+    <span class="comment">% calculate the firing rate</span>
+    lambda=firing_rate(k*pi/4);
+
+    <span class="comment">% Generate the spike trains</span>
+    spikes=zeros(n_bins, n_trials);
+    <span class="keyword">for</span> trial=1:n_trials
+        spikes(:,trial)=generate_Poisson(lambda, 1);
+    <span class="keyword">end</span>
+
+    <span class="comment">% Plot the trials</span>
+    figure(1);
+    subplot(3,3,plot_order(k+1))
+    title([<span class="string">'s='</span> num2str(k) <span class="string">'\pi/4'</span>])
+    imagesc(spikes(:,1:5)'); colormap(flipud(gray));
+    xlim([0 n_bins])
+    ylim([0 6])
+    set(gca,<span class="string">'XTick'</span>,[0 1000],<span class="string">'XTickLabel'</span>,[0 1])
+
+    <span class="comment">% Histogram</span>
+    figure(2);
+    subplot(3,3,plot_order(k+1))
+    title([<span class="string">'s='</span> num2str(k) <span class="string">'\pi/4'</span>])
+    tmp=reshape(conv(spikes(:), ones(20,1), <span class="string">'same'</span>), n_bins, n_trials);
+    spike_hist = sum(tmp,2)/n_trials;
+    stairs(spike_hist(10:20:end))
+    ylim([0 1.5])
+
+    <span class="comment">% Tuning curve</span>
+    temp=sum(spikes);
+    emp_firing_rate(k+1)=mean(temp);
+    emp_var(k+1)=std(temp);
+
+    <span class="comment">% Count distribution</span>
+    figure(4);
+    subplot(3,3,plot_order(k+1))
+    title([<span class="string">'s='</span> num2str(k) <span class="string">'\pi/4'</span>])
+    [counts,centers] = hist(temp);
+    lambda_hat=poissfit(temp);
+    plot(centers, 2*poisspdf(round(centers),lambda_hat), <span class="string">'k'</span>)
+    hold <span class="string">on</span>
+    plot(centers, counts/(n_trials), <span class="string">'r'</span>)
+    hold <span class="string">off</span>
+    xlim([0 75])
+    ylim([0 0.3])
+
+    <span class="comment">% ISI</span>
+    figure(6);
+    subplot(3,3,plot_order(k+1))
+    title([<span class="string">'s='</span> num2str(k) <span class="string">'\pi/4'</span>])
+    ISI=diff(find(spikes))/1000;
+    mean_ISI(k+1)=mean(ISI);
+    Cv_ISI(k+1)=std(ISI)/mean(ISI);
+    [counts, centers] = hist(ISI);
+    mu_hat=expfit(ISI);
+    plot(centers, 2*exppdf(centers,mu_hat), <span class="string">'k'</span>)
+    hold <span class="string">on</span>
+    plot(centers, counts/(n_trials), <span class="string">'r'</span>)
+    hold <span class="string">off</span>
+    xlim([0 0.5])
+    ylim([0 60])
+
+<span class="keyword">end</span>
+
+figure(1);
+suptitle(<span class="string">'Example Trials'</span>)
+
+<span class="comment">% Tuning Curve</span>
+figure(3);
+hold <span class="string">on</span>
+errorbar(emp_firing_rate, emp_var/sqrt(n_trials), <span class="string">'r'</span>)
+plot(firing_rate((0:7)*pi/4), <span class="string">'k'</span>)
+legend(<span class="string">'Simulated Firing Rate'</span>, <span class="string">'True Tuning Curve'</span>)
+title(<span class="string">'Tuning Curve'</span>)
+
+<span class="comment">% Fano Factor</span>
+figure(5);
+hold <span class="string">on</span>
+scatter(emp_firing_rate, emp_var.^2)
+plot([0 50],[0 50])
+title(<span class="string">'Fano Factor for Homogenous Data'</span>)
+xlabel(<span class="string">'Firing Rate'</span>)
+ylabel(<span class="string">'Variance'</span>)
+
+<span class="comment">% Coefficient of variation</span>
+figure(7)
+subplot(1,2,1)
+plot(mean_ISI)
+ylim([0 0.12])
+
+subplot(1,2,2)
+plot(Cv_ISI)
+hold <span class="string">on</span>
+plot([0 8],[1 1], <span class="string">'k'</span>)
+ylim([0.5 1.5])
+</pre><img vspace="5" hspace="5" src="nora_Ex5_01.png" alt=""> <img vspace="5" hspace="5" src="nora_Ex5_02.png" alt=""> <img vspace="5" hspace="5" src="nora_Ex5_03.png" alt=""> <img vspace="5" hspace="5" src="nora_Ex5_04.png" alt=""> <img vspace="5" hspace="5" src="nora_Ex5_05.png" alt=""> <img vspace="5" hspace="5" src="nora_Ex5_06.png" alt=""> <img vspace="5" hspace="5" src="nora_Ex5_07.png" alt=""> <h2>Heterogeneous<a name="2"></a></h2><pre class="codeinput"><span class="comment">% calculate the firing rate</span>
+time=0.001:0.001:1;
+lambda=firing_rate(sqrt(time) * pi);
+
+<span class="comment">% Generate the spike trains</span>
+spikes=zeros(n_bins, n_trials);
+<span class="keyword">for</span> trial=1:n_trials
+    spikes(:,trial)=generate_Poisson(lambda, 1);
+<span class="keyword">end</span>
+imagesc(spikes(:,:)'); colormap(flipud(gray));
+
+<span class="comment">% Histogram</span>
+figure(8);
+tmp=reshape(conv(spikes(:), ones(20,1), <span class="string">'same'</span>), n_bins, n_trials);
+spike_hist = sum(tmp,2)/n_trials;
+stairs(time(10:20:end), spike_hist(10:20:end), <span class="string">'r'</span>)
+hold <span class="string">on</span>
+plot(time(10:20:end), lambda(10:20:end)/3, <span class="string">'k'</span>)
+title(<span class="string">'Spike Histogram'</span>)
+
+<span class="comment">% Count distribution</span>
+figure(9);
+[counts,centers] = hist(temp);
+lambda_hat=poissfit(temp);
+plot(centers, 2*poisspdf(round(centers),lambda_hat), <span class="string">'k'</span>)
+hold <span class="string">on</span>
+plot(centers, counts/(n_trials), <span class="string">'r'</span>)
+hold <span class="string">off</span>
+title(<span class="string">'Count Distribution'</span>)
+
+<span class="comment">% ISI</span>
+figure(10);
+ISI=diff(find(spikes))/1000;
+mean_ISI(k+1)=mean(ISI);
+Cv_ISI(k+1)=std(ISI)/mean(ISI);
+[counts, centers] = hist(ISI);
+mu_hat=expfit(ISI);
+plot(centers, 2*exppdf(centers,mu_hat), <span class="string">'k'</span>)
+hold <span class="string">on</span>
+plot(centers, counts/(n_trials), <span class="string">'r'</span>)
+hold <span class="string">off</span>
+title(<span class="string">'ISI Distribution'</span>)
+</pre><img vspace="5" hspace="5" src="nora_Ex5_08.png" alt=""> <img vspace="5" hspace="5" src="nora_Ex5_09.png" alt=""> <img vspace="5" hspace="5" src="nora_Ex5_10.png" alt=""> <img vspace="5" hspace="5" src="nora_Ex5_11.png" alt=""> <h2>Real neural data<a name="3"></a></h2><pre class="codeinput">load(<span class="string">'spike_dat.mat'</span>)
+n_bins=500;
+n_trials=182;
+
+spikes=zeros(n_bins, n_trials);
+
+<span class="keyword">for</span> k=1:8
+
+    <span class="keyword">for</span> i=1:n_trials
+        spikes(:,i)=trial(i,k).spikes;
+    <span class="keyword">end</span>
+
+    <span class="comment">% Plot the trials</span>
+    figure(11);
+    subplot(3,3,plot_order(k))
+    <span class="comment">% title(['s=' num2str(k) '\pi/4'])</span>
+    imagesc(spikes(:,1:5)'); colormap(flipud(gray));
+    xlim([0 n_bins])
+    ylim([0 6])
+    set(gca,<span class="string">'XTick'</span>,[0 1000],<span class="string">'XTickLabel'</span>,[0 1])
+
+    <span class="comment">% Histogram</span>
+    figure(12);
+    subplot(3,3,plot_order(k))
+    tmp=reshape(conv(spikes(:), ones(20,1), <span class="string">'same'</span>), n_bins, n_trials);
+    spike_hist = sum(tmp,2)/n_trials;
+    stairs(spike_hist(10:20:end))
+    ylim([0 1])
+
+    <span class="comment">% Tuning curve</span>
+    temp=sum(spikes);
+    emp_firing_rate(k)=mean(temp);
+    emp_var(k)=std(temp);
+
+    <span class="comment">% Count distribution</span>
+    figure(14);
+    subplot(3,3,plot_order(k))
+    [counts,centers] = hist(temp);
+    lambda_hat=poissfit(temp);
+    plot(centers, poisspdf(round(centers),lambda_hat), <span class="string">'k'</span>)
+    hold <span class="string">on</span>
+    plot(centers, counts/(n_trials), <span class="string">'r'</span>)
+    hold <span class="string">off</span>
+    xlim([0 20])
+    ylim([0 0.5])
+
+    <span class="comment">% ISI</span>
+    figure(16);
+    subplot(3,3,plot_order(k))
+    ISI=diff(find(spikes))/1000;
+    mean_ISI(k)=mean(ISI);
+    Cv_ISI(k)=std(ISI)/mean(ISI);
+    [counts, centers] = hist(ISI);
+    mu_hat=expfit(ISI);
+    plot(centers, exppdf(centers,mu_hat), <span class="string">'k'</span>)
+    hold <span class="string">on</span>
+    plot(centers, counts/(n_trials), <span class="string">'r'</span>)
+    hold <span class="string">off</span>
+    xlim([0 0.5])
+    ylim([0 10])
+
+<span class="keyword">end</span>
+
+<span class="comment">% Tuning Curve</span>
+figure(13);
+hold <span class="string">on</span>
+errorbar(emp_firing_rate, emp_var/sqrt(n_trials), <span class="string">'r'</span>)
+<span class="comment">%plot(firing_rate((0:7)*pi/4), 'k')</span>
+<span class="comment">%legend('Empirical Tuning Curve', 'Tuning Curve from PT A')</span>
+title(<span class="string">'Tuning Curve for Real Data'</span>)
+
+<span class="comment">% Fano Factor</span>
+figure(15);
+hold <span class="string">on</span>
+scatter(emp_firing_rate, emp_var.^2)
+plot([0 7],[0 7])
+axis <span class="string">square</span>
+title(<span class="string">'Fano Factor for Real Data'</span>)
+xlabel(<span class="string">'Firing Rate'</span>)
+ylabel(<span class="string">'Variance'</span>)
+</pre><img vspace="5" hspace="5" src="nora_Ex5_12.png" alt=""> <img vspace="5" hspace="5" src="nora_Ex5_13.png" alt=""> <img vspace="5" hspace="5" src="nora_Ex5_14.png" alt=""> <img vspace="5" hspace="5" src="nora_Ex5_15.png" alt=""> <img vspace="5" hspace="5" src="nora_Ex5_16.png" alt=""> <img vspace="5" hspace="5" src="nora_Ex5_17.png" alt=""> <p class="footer"><br>
+      Published with MATLAB&reg; 7.14<br></p></div><!--
+##### SOURCE BEGIN #####
+%% Homogeneous Poisson process
+
+set(0,'DefaultTextFontSize',32, 'DefaultAxesFontSize',18,'DefaultAxesFontName','Helvetica')
+n_trials=100;
+trial_length=1;
+
+n_bins=1000*trial_length; % 1ms bins
+plot_order=[6, 9, 8, 7, 4, 1, 2, 3];
+
+
+for k=0:7
+    
+    % calculate the firing rate
+    lambda=firing_rate(k*pi/4);
+    
+    % Generate the spike trains 
+    spikes=zeros(n_bins, n_trials);
+    for trial=1:n_trials
+        spikes(:,trial)=generate_Poisson(lambda, 1);
+    end
+    
+    % Plot the trials
+    figure(1);
+    subplot(3,3,plot_order(k+1))
+    title(['s=' num2str(k) '\pi/4'])
+    imagesc(spikes(:,1:5)'); colormap(flipud(gray));
+    xlim([0 n_bins])
+    ylim([0 6])
+    set(gca,'XTick',[0 1000],'XTickLabel',[0 1])
+    
+    % Histogram
+    figure(2);
+    subplot(3,3,plot_order(k+1))
+    title(['s=' num2str(k) '\pi/4'])
+    tmp=reshape(conv(spikes(:), ones(20,1), 'same'), n_bins, n_trials);
+    spike_hist = sum(tmp,2)/n_trials;
+    stairs(spike_hist(10:20:end))
+    ylim([0 1.5])
+    
+    % Tuning curve
+    temp=sum(spikes);
+    emp_firing_rate(k+1)=mean(temp);
+    emp_var(k+1)=std(temp);
+    
+    % Count distribution
+    figure(4);
+    subplot(3,3,plot_order(k+1))
+    title(['s=' num2str(k) '\pi/4'])
+    [counts,centers] = hist(temp);
+    lambda_hat=poissfit(temp);
+    plot(centers, 2*poisspdf(round(centers),lambda_hat), 'k')
+    hold on
+    plot(centers, counts/(n_trials), 'r')
+    hold off
+    xlim([0 75])
+    ylim([0 0.3])
+    
+    % ISI
+    figure(6);
+    subplot(3,3,plot_order(k+1))
+    title(['s=' num2str(k) '\pi/4'])
+    ISI=diff(find(spikes))/1000;
+    mean_ISI(k+1)=mean(ISI);
+    Cv_ISI(k+1)=std(ISI)/mean(ISI);
+    [counts, centers] = hist(ISI);
+    mu_hat=expfit(ISI);
+    plot(centers, 2*exppdf(centers,mu_hat), 'k')
+    hold on
+    plot(centers, counts/(n_trials), 'r')
+    hold off
+    xlim([0 0.5])
+    ylim([0 60])
+
+end
+
+figure(1);
+suptitle('Example Trials')
+
+% Tuning Curve
+figure(3);
+hold on
+errorbar(emp_firing_rate, emp_var/sqrt(n_trials), 'r')
+plot(firing_rate((0:7)*pi/4), 'k')
+legend('Simulated Firing Rate', 'True Tuning Curve')
+title('Tuning Curve')
+
+% Fano Factor
+figure(5);
+hold on
+scatter(emp_firing_rate, emp_var.^2)
+plot([0 50],[0 50])
+title('Fano Factor for Homogenous Data')
+xlabel('Firing Rate')
+ylabel('Variance')
+
+% Coefficient of variation
+figure(7)
+subplot(1,2,1)
+plot(mean_ISI)
+ylim([0 0.12])
+
+subplot(1,2,2)
+plot(Cv_ISI)
+hold on
+plot([0 8],[1 1], 'k')
+ylim([0.5 1.5])
+
+%% Heterogeneous
+
+% calculate the firing rate
+time=0.001:0.001:1;
+lambda=firing_rate(sqrt(time) * pi);
+
+% Generate the spike trains
+spikes=zeros(n_bins, n_trials);
+for trial=1:n_trials
+    spikes(:,trial)=generate_Poisson(lambda, 1);
+end
+imagesc(spikes(:,:)'); colormap(flipud(gray));
+
+% Histogram
+figure(8);
+tmp=reshape(conv(spikes(:), ones(20,1), 'same'), n_bins, n_trials);
+spike_hist = sum(tmp,2)/n_trials;
+stairs(time(10:20:end), spike_hist(10:20:end), 'r')
+hold on
+plot(time(10:20:end), lambda(10:20:end)/3, 'k')
+title('Spike Histogram')
+
+% Count distribution
+figure(9);
+[counts,centers] = hist(temp);
+lambda_hat=poissfit(temp);
+plot(centers, 2*poisspdf(round(centers),lambda_hat), 'k')
+hold on
+plot(centers, counts/(n_trials), 'r')
+hold off
+title('Count Distribution')
+
+% ISI
+figure(10);
+ISI=diff(find(spikes))/1000;
+mean_ISI(k+1)=mean(ISI);
+Cv_ISI(k+1)=std(ISI)/mean(ISI);
+[counts, centers] = hist(ISI);
+mu_hat=expfit(ISI);
+plot(centers, 2*exppdf(centers,mu_hat), 'k')
+hold on
+plot(centers, counts/(n_trials), 'r')
+hold off
+title('ISI Distribution')
+
+%% Real neural data
+load('spike_dat.mat')
+n_bins=500;
+n_trials=182;
+
+spikes=zeros(n_bins, n_trials);
+
+for k=1:8
+    
+    for i=1:n_trials
+        spikes(:,i)=trial(i,k).spikes;
+    end
+    
+    % Plot the trials
+    figure(11);
+    subplot(3,3,plot_order(k))
+    % title(['s=' num2str(k) '\pi/4'])
+    imagesc(spikes(:,1:5)'); colormap(flipud(gray));
+    xlim([0 n_bins])
+    ylim([0 6])
+    set(gca,'XTick',[0 1000],'XTickLabel',[0 1])
+    
+    % Histogram
+    figure(12);
+    subplot(3,3,plot_order(k))
+    tmp=reshape(conv(spikes(:), ones(20,1), 'same'), n_bins, n_trials);
+    spike_hist = sum(tmp,2)/n_trials;
+    stairs(spike_hist(10:20:end))
+    ylim([0 1])
+    
+    % Tuning curve
+    temp=sum(spikes);
+    emp_firing_rate(k)=mean(temp);
+    emp_var(k)=std(temp);
+    
+    % Count distribution
+    figure(14);
+    subplot(3,3,plot_order(k))
+    [counts,centers] = hist(temp);
+    lambda_hat=poissfit(temp);
+    plot(centers, poisspdf(round(centers),lambda_hat), 'k')
+    hold on
+    plot(centers, counts/(n_trials), 'r')
+    hold off
+    xlim([0 20])
+    ylim([0 0.5])
+    
+    % ISI
+    figure(16);
+    subplot(3,3,plot_order(k))
+    ISI=diff(find(spikes))/1000;
+    mean_ISI(k)=mean(ISI);
+    Cv_ISI(k)=std(ISI)/mean(ISI);
+    [counts, centers] = hist(ISI);
+    mu_hat=expfit(ISI);
+    plot(centers, exppdf(centers,mu_hat), 'k')
+    hold on
+    plot(centers, counts/(n_trials), 'r')
+    hold off
+    xlim([0 0.5])
+    ylim([0 10])
+
+end
+
+% Tuning Curve
+figure(13);
+hold on
+errorbar(emp_firing_rate, emp_var/sqrt(n_trials), 'r')
+%plot(firing_rate((0:7)*pi/4), 'k')
+%legend('Empirical Tuning Curve', 'Tuning Curve from PT A')
+title('Tuning Curve for Real Data')
+
+% Fano Factor
+figure(15);
+hold on
+scatter(emp_firing_rate, emp_var.^2)
+plot([0 7],[0 7])
+axis square
+title('Fano Factor for Real Data')
+xlabel('Firing Rate')
+ylabel('Variance')
+
+
+
+
+
+##### SOURCE END #####
+--></body></html>
