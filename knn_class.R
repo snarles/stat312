@@ -27,7 +27,10 @@ choose_k = function(vecs, labels){
 
 # --------
 # test vecs, training vecs, labels, k
-knn_test= function(test_vecs, vecs, labels, k = choose_k(vecs, labels)){
+knn_test = function(test_vecs, vecs, labels, k = 0){
+  if (k==0){
+    k = choose_k(vecs, labels)
+  }
   train_trials = dim(vecs)[1] # the number of trials
   test_trials = dim(test_vecs)[1] # the number of trials
   neur = dim(vecs)[2]
