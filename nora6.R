@@ -33,10 +33,10 @@ for (i in seq(2,length(dat$test.trial),2)){
 shared_fit = gauss_fit(vecs, nlab, shared = TRUE)
 
 # check the training data
-Gauss_SharedCov_Train_Error = sum(gauss_test(vecs, shared_fit) != labels)/train_trials
+Gauss_SharedCov_Train_Error = sum(gauss_predict(vecs, shared_fit) != labels)/train_trials
 
 # try it out on test data
-Gauss_SharedCov_assigned_label = gauss_test(test_vecs, shared_fit)
+Gauss_SharedCov_assigned_label = gauss_predict(test_vecs, shared_fit)
 Gauss_SharedCov_Test_Error = sum(Gauss_SharedCov_assigned_label != labels)/test_trials
 
 # Classification: Gaussian generative separate covs--------
@@ -45,10 +45,10 @@ Gauss_SharedCov_Test_Error = sum(Gauss_SharedCov_assigned_label != labels)/test_
 shared_fit = gauss_fit(vecs, nlab, shared = FALSE)
 
 # check the training data
-Gauss_SeparateCov_Train_Error = sum(gauss_test(vecs, shared_fit) != labels)/train_trials
+Gauss_SeparateCov_Train_Error = sum(gauss_predict(vecs, shared_fit) != labels)/train_trials
 
 # try it out on test data
-Gauss_SeparateCov_assigned_label = gauss_test(test_vecs, shared_fit)
+Gauss_SeparateCov_assigned_label = gauss_predict(test_vecs, shared_fit)
 Gauss_SeparateCov_Test_Error = sum(Gauss_SharedCov_assigned_label != labels)/test_trials
 
 # Classification: k nearest-neighbor ---------
@@ -75,4 +75,13 @@ points(jitter(Gauss_SharedCov_assigned_label,2), jitter(labels,2), 'col' = 3, 'p
 plot(jitter(Gauss_SeparateCov_assigned_label,2), jitter(labels,2), 'col' = 4, 'pch'=19, 'cex'=0.5) 
 
 # Dimension reduction -----------
+S=svd(vecs)
+new_training_vec <- S$scores[,1:3]
+
+# estimate the params
+shared_fit = gauss_fit(new_training_vec, nlab, shared = TRUE)
+
+# check the training data
+Gauss_SharedCov_Train_Error = sum(gauss_predict(new_training_vec, shared_fit) != labels)/train_trials
+
 

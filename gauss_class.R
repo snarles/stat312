@@ -39,7 +39,7 @@ gauss_predict = function(test_vecs, fit){
   # fit is from above function
   trials = dim(test_vecs)[1]
   nlab = dim(fit$mean)[1]
-  assigned_label <- matrix(0, trials)
+  assigned_label = matrix(0, trials, 1)
   if (length(dim(fit$cov)) == 3){shared = FALSE} else{shared = TRUE}
   for (i in 1:trials){
     prob = 0
