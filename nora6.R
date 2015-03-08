@@ -1,6 +1,7 @@
 # Data loading and prep ---------
 
 # load libaries and read data
+source("gauss_class.R")
 library("R.matlab")
 library('mvtnorm')
 dat = readMat('ps3_realdata.mat')
@@ -84,7 +85,7 @@ G_cov = array(0,dim=c(nlab,97,97))
 for (i in 1:train_trials){
   G_cov[labels[i],,] = G_cov[labels[i],,]+(vecs[i,]-G_means[labels[i],])%*%t(vecs[i,]-G_means[labels[i],])
 }
-#G_cov = G_cov/91
+G_cov = G_cov/91
 
 # try it out on training data------
 assigned_label <- matrix(0, train_trials)
@@ -165,7 +166,7 @@ KNN_Test_Error=sum(KNN_assigned_label != labels)/test_trials # Final test error
 fit <- kmeans(vecs,8)
 aggregate(vecs,by=list(fit$cluster),FUN=mean)
 
-# Viz
+# Viz ------------
 plot(jitter(KNN_assigned_label,2), jitter(labels,2), 'col' = 2, 'pch'=19, 'cex'=0.5) # plot confusion
 points(jitter(Gauss_SharedCov_assigned_label,2), jitter(labels,2), 'col' = 3, 'pch'=19, 'cex'=0.5) 
 plot(jitter(Gauss_SeparateCov_assigned_label,2), jitter(labels,2), 'col' = 4, 'pch'=19, 'cex'=0.5) 
