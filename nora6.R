@@ -2,6 +2,7 @@
 
 # load libaries and read data
 source("gauss_class.R")
+source("knn_class.R")
 library("R.matlab")
 library('mvtnorm')
 dat = readMat('ps3_realdata.mat')
@@ -75,13 +76,18 @@ points(jitter(Gauss_SharedCov_assigned_label,2), jitter(labels,2), 'col' = 3, 'p
 plot(jitter(Gauss_SeparateCov_assigned_label,2), jitter(labels,2), 'col' = 4, 'pch'=19, 'cex'=0.5) 
 
 # Dimension reduction -----------
-S=svd(vecs)
-new_training_vec <- S$scores[,1:3]
+
+S=svd(scale(vecs, center = T, scale = F))
+new_dim = 3
+new_training_vec <- (vecs %*% S$v)[,1:new_dim]
+new_test_vec <- (test_vecs %*% S$v)[,1:new_dim]
 
 # estimate the params
-shared_fit = gauss_fit(new_training_vec, nlab, shared = TRUE)
+shared_fit = gauss_fit(new_training_vec, nlab, shared = FALSE)
 
 # check the training data
 Gauss_SharedCov_Train_Error = sum(gauss_predict(new_training_vec, shared_fit) != labels)/train_trials
 
-
+# try it out on test data
+Gauss_SharedCov_assigned_label = gauss_predict(new_test_vec, shared_fit)
+Gauss_SharedCov_Test_Error = sum(Gauss_SharedCov_assigned_label != labels)/test_trials
