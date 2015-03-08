@@ -30,8 +30,7 @@ gauss_fit = function(train_vecs, nlab, shared = TRUE){
     G_cov = nlab* G_cov/trials
   }
   # return the fit
-  fit <- list("mean" = G_means, "cov" = G_cov)
-  return(fit)
+  return(list("mean" = G_means, "cov" = G_cov))
 }
   
 # --------------- gauss_predict

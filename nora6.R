@@ -1,4 +1,4 @@
-# Data loading and prep ---------
+# Data and library and source loading ---------
 
 # load libaries and read data
 source("gauss_class.R")
@@ -6,10 +6,13 @@ library("R.matlab")
 library('mvtnorm')
 dat = readMat('ps3_realdata.mat')
 
-# Sum up the # of spikes in the relevant time frame for each trial 
+# Formatting the data the way we need it ----------
+
+# Just defining some numbers
 neur = 97
 train_trials = 728
 test_trials = 728
+nlab = 8
 
 # training data
 vecs = matrix(nr =length(dat$train.trial)/2, nc = neur) 
@@ -18,7 +21,6 @@ for (i in seq(2,length(dat$train.trial),2)){
   }
 labels = rep(1:8, each = 91) 
 nlab = 8
-
 # testing data
 test_vecs = matrix(nr =length(dat$test.trial)/2, nc = neur) 
 for (i in seq(2,length(dat$test.trial),2)){
@@ -27,94 +29,27 @@ for (i in seq(2,length(dat$test.trial),2)){
 
 # Classification: Gaussian generative shared cov--------
 
-nlab = 8; 
+# estimate the params
+shared_fit = gauss_fit(vecs, nlab, shared = TRUE)
 
-# Calculate the means of each class
-G_means = matrix(nr = nlab, nc = neur) 
-for (i in 1:nlab){
-  G_means[i,] = colMeans(vecs[labels==i,])
-}
+# check the training data
+Gauss_SharedCov_Train_Error = sum(gauss_test(vecs, shared_fit) != labels)/train_trials
 
-# Calculate the shared covariance
-G_cov = matrix(0,97,97)
-for (i in 1:train_trials){
-  G_cov = G_cov+(vecs[i,]-G_means[labels[i],])%*%t(vecs[i,]-G_means[labels[i],])
-}
-G_cov = G_cov/ train_trials
-
-# try it out on training data
-assigned_label <- matrix(0, train_trials)
-for (i in 1:train_trials){
-  prob = 0
-  for (class in 1:nlab){
-    prob_temp = dmvnorm(vecs[i,], mean = G_means[class,], sigma = G_cov)
-    if (prob_temp > prob){
-      prob = prob_temp
-      assigned_label[i] = class
-    }
-  }
-}
-Gauss_SharedCov_Train_Error = sum(assigned_label != labels)/train_trials
-
-# try it out on testing data
-Gauss_SharedCov_assigned_label <- matrix(0, test_trials)
-for (i in 1:test_trials){
-  prob = 0
-  for (class in 1:nlab){
-    prob_temp = dmvnorm(test_vecs[i,], mean = G_means[class,], sigma = G_cov)
-    if (prob_temp > prob){
-      prob = prob_temp
-      Gauss_SharedCov_assigned_label[i] = class
-    }
-  }
-}
+# try it out on test data
+Gauss_SharedCov_assigned_label = gauss_test(test_vecs, shared_fit)
 Gauss_SharedCov_Test_Error = sum(Gauss_SharedCov_assigned_label != labels)/test_trials
 
 # Classification: Gaussian generative separate covs--------
 
-nlab = 8;
+# estimate the params
+shared_fit = gauss_fit(vecs, nlab, shared = FALSE)
 
-# Calculate the means of each class
-G_means = matrix(nr = nlab, nc = neur) 
-for (i in 1:nlab){
-  G_means[i,] = colMeans(vecs[labels==i,])
-}
+# check the training data
+Gauss_SeparateCov_Train_Error = sum(gauss_test(vecs, shared_fit) != labels)/train_trials
 
-# Calculate the covariance of each class
-G_cov = array(0,dim=c(nlab,97,97))
-for (i in 1:train_trials){
-  G_cov[labels[i],,] = G_cov[labels[i],,]+(vecs[i,]-G_means[labels[i],])%*%t(vecs[i,]-G_means[labels[i],])
-}
-G_cov = G_cov/91
-
-# try it out on training data------
-assigned_label <- matrix(0, train_trials)
-for (i in 1:1){#train_trials){
-  prob = 0
-  for (class in 1:nlab){
-    prob_temp = dmvnorm(vecs[i,], mean = G_means[class,], sigma = G_cov[class,,])
-    print(prob_temp)
-    if (prob_temp > prob){
-      prob = prob_temp
-      assigned_label[i] = class
-    }
-  }
-}
-Gauss_SeparateCov_Train_Error = sum(assigned_label != labels)/train_trials
-
-# try it out on testing data------
-Gauss_SeparateCov_assigned_label <- matrix(0, test_trials)
-for (i in 1:test_trials){
-  prob = 0
-  for (class in 1:nlab){
-    prob_temp = dmvnorm(test_vecs[i,], mean = G_means[class,], sigma = G_cov[class,,])
-    if (prob_temp > prob){
-      prob = prob_temp
-      Gauss_SeparateCov_assigned_label[i] = class
-    }
-  }
-}
-Gauss_SeparateCov_Test_Error = sum(Gauss_SeparateCov_assigned_label != labels)/test_trials
+# try it out on test data
+Gauss_SeparateCov_assigned_label = gauss_test(test_vecs, shared_fit)
+Gauss_SeparateCov_Test_Error = sum(Gauss_SharedCov_assigned_label != labels)/test_trials
 
 # Classification: k nearest-neighbor ---------
 
