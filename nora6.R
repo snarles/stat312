@@ -2,6 +2,7 @@
 
 # load libaries and read data
 library("R.matlab")
+library('mvtnorm')
 dat = readMat('ps3_realdata.mat')
 
 # Sum up the # of spikes in the relevant time frame for each trial 
@@ -24,7 +25,22 @@ for (i in seq(2,length(dat$test.trial),2)){
 }
 
 # Classification: Gaussian generative --------
+nlab = 8; 
 
+# means of each class
+G_means = matrix(nr = nlab, nc = neur) 
+for (i in 1:nlab){
+  G_means[i,] = colMeans(vecs[labels==i,])
+}
+
+# shared covariance
+G_cov = matrix(0,97,97)
+for (i in 1:train_trials){
+  G_cov = G_cov+t(vecs[i,]-G_means[labels[i],])*(vecs[i,]-G_means[labels[i],])
+}
+
+  
+  
 
 # Classification: k nearest-neighbor ---------
 # Choose k using training data
@@ -80,5 +96,5 @@ plot(jitter(assigned_label,1), jitter(labels,1))
 test_error=sum(assigned_label != labels)/test_trials
 
 # Clustering: ---------
-
-
+fit <- kmeans(vecs,8)
+aggregate(vecs,by=list(fit$cluster),FUN=mean)
