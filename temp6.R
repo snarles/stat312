@@ -1,3 +1,6 @@
+source("gauss_class.R")
+library("R.matlab")
+library('mvtnorm')
 dat = readMat('ps3_realdata.mat')
 # Just defining some numbers
 neur = 97
@@ -58,3 +61,42 @@ dim(shared_fit$mean)
 mu_dist <- dist(shared_fit$mean %*% isqrtm(shared_fit$cov))
 res_h <- hclust(mu_dist)
 plot(res_h)
+
+# kmeans
+
+max_K <- 30
+results <- list(max_K)
+for (i in 1:max_K) {
+  results[[i]] <- kmeans(vecs, centers = i)
+}
+plot(sapply(results, function(v) v$tot.withinss))
+
+K <- 8
+res <- results[[K]]
+countmat <- matrix(0, 8, K)
+for (i in 1:8) {
+  countmat[i, ] <- table(c(1:8, res$cluster[labels == i]))-1
+}
+
+best_trace <- 0
+best_perm <- NULL
+for (i in 1:10000) {
+  perm <- sample(8, 8, FALSE)
+  trr <- sum(diag(countmat[, perm]))
+  if (trr > best_trace) {
+    best_trace <- trr
+    best_perm <- perm
+  }
+}
+
+default_options <- options()
+old_par <- par()
+library(corrplot)
+corrplot(countmat[, best_perm], is.corr=FALSE)
+options(default_options)
+par(old_par)
+
+dmat <- as.matrix(tr_dist)
+res <- svd(dmat)
+plot(res$d[1:10])
+plot(res$u[, 2], res$u[, 3], col = rainbow(8)[labels])
