@@ -100,3 +100,18 @@ dmat <- as.matrix(tr_dist)
 res <- svd(dmat)
 plot(res$d[1:10])
 plot(res$u[, 2], res$u[, 3], col = rainbow(8)[labels])
+
+
+
+tr_dist <- dist(t(vecs))
+res_h <- hclust(tr_dist)
+names(res_h)
+plot(res_h)
+res_h$order
+
+heatmap(vecs, Rowv = NA)
+?heatmap
+
+heatmap(matrix(rnorm(16), 4, 4))
+locator(1)
+locator(1)
