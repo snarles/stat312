@@ -71,7 +71,7 @@ aggregate(vecs,by=list(fit$cluster),FUN=mean)
 # KNN works pretty well
 plot(jitter(KNN_assigned_label,2), jitter(labels,2), 'col' = 2, 'pch'=19, 'cex'=0.5) # plot confusion
 # Gauss with shared is slightly better than KNN
-points(jitter(Gauss_SharedCov_assigned_label,2), jitter(labels,2), 'col' = 3, 'pch'=19, 'cex'=0.5) 
+plot(jitter(Gauss_SharedCov_assigned_label,2), jitter(labels,2), 'col' = 3, 'pch'=19, 'cex'=0.5) 
 # this one doesn't work!
 plot(jitter(Gauss_SeparateCov_assigned_label,2), jitter(labels,2), 'col' = 4, 'pch'=19, 'cex'=0.5) 
 
@@ -91,3 +91,20 @@ Gauss_SharedCov_Train_Error = sum(gauss_predict(new_training_vec, shared_fit) !=
 # try it out on test data
 Gauss_SharedCov_assigned_label = gauss_predict(new_test_vec, shared_fit)
 Gauss_SharedCov_Test_Error = sum(Gauss_SharedCov_assigned_label != labels)/test_trials
+
+# Try picking out important neurons using heat map
+
+a <- heatmap(vecs)
+neur=15;
+important_neurons = a$colInd[1:neur];
+
+# estimate the params
+shared_fit = gauss_fit(vecs[,important_neurons], nlab, shared = TRUE)
+
+# check the training data
+Gauss_SharedCov_Train_Error = sum(gauss_predict(vecs[,important_neurons], shared_fit) != labels)/train_trials
+
+# try it out on test data
+Gauss_SharedCov_assigned_label = gauss_predict(test_vecs[,important_neurons], shared_fit)
+Gauss_SharedCov_Test_Error = sum(Gauss_SharedCov_assigned_label != labels)/test_trials
+
