@@ -1,0 +1,244 @@
+Exercise 6
+========================================================
+Nora Brackbill and Charles Zheng
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(cache=TRUE)
+```
+
+## Load the data
+
+```{r, cache=FALSE}
+source("gauss_class.R")
+source("knn_class.R")
+library("R.matlab")
+library('mvtnorm')
+dat = readMat('ps3_realdata.mat')
+```
+
+```{r}
+neur = 97
+train_trials = 728
+test_trials = 728
+nlab = 8
+
+vecs = matrix(nr =length(dat$train.trial)/2, nc = neur) 
+for (i in seq(2,length(dat$train.trial),2)){
+  vecs[i/2,] = rowSums(dat$train.trial[i][[1]][,351:550])
+  }
+labels = rep(1:8, each = 91) 
+nlab = 8
+# testing data
+test_vecs = matrix(nr =length(dat$test.trial)/2, nc = neur) 
+for (i in seq(2,length(dat$test.trial),2)){
+  test_vecs[i/2,] = rowSums(dat$test.trial[i][[1]][,351:550]) 
+}
+```
+
+
+
+### Shared Covariance
+
+```{r}
+shared_fit = gauss_fit(vecs, nlab, shared = TRUE)
+
+# check the training data
+Gauss_SharedCov_Train_Error = sum(gauss_predict(vecs, shared_fit) != labels)/train_trials
+
+# try it out on test data
+Gauss_SharedCov_assigned_label = gauss_predict(test_vecs, shared_fit)
+Gauss_SharedCov_Test_Error = sum(Gauss_SharedCov_assigned_label != labels)/test_trials
+Gauss_SharedCov_Test_Error
+```
+
+Look at confusion matrix
+```{r}
+Gauss_SharedCov_assigned_label[1:20 * 10]
+pred_labels <- as.factor(Gauss_SharedCov_assigned_label)
+cm <- table(labels, pred_labels)
+cm
+```
+
+```{r fig.width=5, fig.height=6}
+library(corrplot)
+corrplot(cm, is.corr=FALSE)
+```
+
+
+### Separate Covariance
+
+INCOMPLETE -- NEED TO REGULARIZE THE COVARIANCE ESTIMATE
+
+```{r}
+# estimate the params
+shared_fit = gauss_fit(vecs, nlab, shared = FALSE)
+
+# check the training data
+Gauss_SeparateCov_Train_Error = sum(gauss_predict(vecs, shared_fit) != labels)/train_trials
+
+# try it out on test data
+Gauss_SeparateCov_assigned_label = gauss_predict(test_vecs, shared_fit)
+Gauss_SeparateCov_Test_Error = sum(Gauss_SharedCov_assigned_label != labels)/test_trials
+Gauss_SeparateCov_Test_Error
+```
+
+## K-nearest neighbor
+```{r}
+library(class)
+```
+
+Choose the number of neighbors k.
+```{r fig.width=5, fig.height=6}
+results <- numeric(30)
+for (i in 1:30) {
+  res <- knn.cv(vecs, cl=labels, k=i)
+  results[i] <- sum(res != labels)
+}
+plot(results, type = 'b')
+```
+
+Set
+```{r}
+k = 11
+```
+
+Use KNN on test set
+```{r}
+pred_labels <- knn(vecs, test_vecs, labels, k = k)
+misc_rate <- sum(pred_labels != labels)/length(labels)
+misc_rate
+```
+
+Look at confusion matrix
+```{r}
+cm <- table(labels, pred_labels)
+cm
+```
+
+```{r fig.width=5, fig.height=6}
+library(corrplot)
+corrplot2 <- function(x, ...) {
+  old.par <- par(no.readonly = TRUE)
+  corrplot(x, ...)
+  par(old.par)
+}
+corrplot2(cm, is.corr=FALSE)
+```
+
+## Hierarchical Clustering of means
+
+Hierachical clustering of all training points!
+
+```{r fig.width=5, fig.height=6}
+tr_dist <- dist(vecs)
+res_h <- hclust(tr_dist)
+names(res_h)
+plot(res_h)
+
+cols <- rainbow(8)
+for (i in 1:8) {
+  xs <- which(labels[res_h$order] == i)
+  ys <- rep(min(res_h$height), length(xs))
+  points(xs, ys, pch = '*', col=cols[i])
+}
+```
+
+Just cluster the means.
+
+```{r fig.width=5, fig.height=6}
+
+
+shared_fit = gauss_fit(vecs, nlab, shared = TRUE)
+
+isqrtm <- function(m) {
+  res <- eigen(m)
+  d <- res$values
+  d[d < 0] <- 0
+  d[d > 0] <- 1/sqrt(d[d > 0])
+  v <- res$vectors
+  return (v %*% diag(d) %*% t(v))
+}
+
+dim(shared_fit$mean)
+#mu_dist <- dist(shared_fit$mean)
+mu_dist <- dist(shared_fit$mean %*% isqrtm(shared_fit$cov))
+res_h <- hclust(mu_dist)
+plot(res_h)
+```
+
+
+## Kmeans
+
+```{r fig.width=5, fig.height=6}
+max_K <- 30
+results <- list(max_K)
+for (i in 1:max_K) {
+  results[[i]] <- kmeans(vecs, centers = i)
+}
+plot(sapply(results, function(v) v$tot.withinss))
+```
+
+Look at within SS vs number of clusters.
+
+Choose k = 8 to see how well we recover the original clusters.
+
+```{r}
+K <- 8
+res <- results[[K]]
+countmat <- matrix(0, 8, K)
+for (i in 1:8) {
+  countmat[i, ] <- table(c(1:8, res$cluster[labels == i]))-1
+}
+```
+
+Match clusters and groups.
+
+```{r}
+best_trace <- 0
+best_perm <- NULL
+for (i in 1:10000) {
+  perm <- sample(8, 8, FALSE)
+  trr <- sum(diag(countmat[, perm]))
+  if (trr > best_trace) {
+    best_trace <- trr
+    best_perm <- perm
+  }
+}
+```
+
+The confusion matrix.
+
+```{r fig.width=5, fig.height=6}
+corrplot2(countmat[, best_perm], is.corr=FALSE)
+```
+
+## The distance matrix
+
+Take the SVD of the distance matrix
+
+```{r}
+dmat <- as.matrix(tr_dist)
+res <- svd(dmat)
+```
+
+Look at the singular values
+
+```{r fig.width=5, fig.height=6}
+plot(res$d[1:10])
+```
+
+Plot the first two directions
+```{r fig.width=5, fig.height=6}
+plot(res$u[, 1], res$u[, 2], col = rainbow(8)[labels])
+```
+
+Plot the second and third directions
+```{r fig.width=5, fig.height=6}
+plot(res$u[, 2], res$u[, 3], col = rainbow(8)[labels])
+```
+
+## Neuron vs Trial
+
+```{r fig.width=5, fig.height=6}
+heatmap(vecs, Rowv = NA)
+```
